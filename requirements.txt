@@ -1,0 +1,8 @@
+pg8000
+pytest
+boto3
+moto
+black
+safety
+bandit
+coverage
