@@ -66,7 +66,7 @@ dev-setup: black coverage bandit safety
 
 ## Run the security tests
 security-test:
-	$(call execute_in_env, safety scan -r ./requirements.txt)
+	$(call execute_in_env, safety check -r ./requirements.txt)
 
 	$(call execute_in_env, bandit -lll */*.py *c/*/*.py)
 
