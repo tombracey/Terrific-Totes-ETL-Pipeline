@@ -6,3 +6,4 @@ black
 safety
 bandit
 coverage
+python-dotenv

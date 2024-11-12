@@ -1,2 +1,5 @@
 .details.txt
 planning-questions.md
+.env
+venv
+__pycache__
