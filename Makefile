@@ -38,7 +38,7 @@ endef
 ## Build the environment requirements
 requirements: create-environment
 	$(call execute_in_env, $(PIP) install -r ./requirements.txt)
-	$(call execute_in_env, $(PIP) install -r ./requirements.txt -t dependencies/python)
+# $(call execute_in_env, $(PIP) install -r ./requirements.txt -t dependencies/python)
 
 ################################################################################################################
 # Set Up
