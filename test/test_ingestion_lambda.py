@@ -16,4 +16,4 @@ def test_connection_can_access_table():
     assert type(expect[0][6]) == datetime.datetime
 
 def test_ingests_updated_rows_of_counterparty_table():
-    
+    pass

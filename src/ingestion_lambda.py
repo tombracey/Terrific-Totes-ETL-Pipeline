@@ -30,15 +30,16 @@ def get_data():
     
 
 
-    test_db = db.run('''
-  SELECT json_agg(row_to_json(counterparty))::text
-  FROM counterparty
-);''')
-    
+    test_db = db.run(
+        '''COPY (
+            SELECT json_agg(row_to_json(counterparty))::text 
+            FROM counterparty)
+          ) TO XXXXXXXXX'''
+    print(test_db)
 
-    with open('test_db.txt', 'w') as f:
-        db_json = json.dumps(test_db, default=str)
-        f.write(db_json)
+    # with open('test_db.txt', 'w') as f:
+    #     db_json = json.dumps(test_db, default=str)
+    #     f.write(db_json)
     
     
 
