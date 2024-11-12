@@ -21,7 +21,7 @@ terraform {
   }
 
   backend "s3" {
-    bucket = var.state_bucket_name
+    bucket = "gb-ttotes-remote-state-bucket"
     key = "terraform.tfstate"
     region = "eu-west-2"
   }
