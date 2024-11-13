@@ -1,2 +1,5 @@
 .details.txt
 planning-questions.md
+dependencies/**
+rotater.py
+**pycache**
