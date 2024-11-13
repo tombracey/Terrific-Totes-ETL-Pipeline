@@ -13,10 +13,3 @@ resource "aws_lambda_function" "ingestion_lambda" {
 # we think we will need to add a layers= to this once layer is completed
 
 
-resource "aws_s3_object" "ingestion_lambda_code" {
-  bucket = aws_s3_bucket.code_bucket.id
-  key    = "function.zip"
-  source = "${path.module}/../packages/ingestion/function.zip" 
-  etag = filemd5(data.archive_file.ingestion_lambda_zip.output_path)
-}
-
