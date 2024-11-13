@@ -22,3 +22,13 @@ variable "ingestion_bucket_prefix" {
     type = string
     default = "ingestion-bucket-"
 }
+
+variable "error_tag" {
+  type = string
+  default = "ERROR"
+}
+
+variable "ingestion_metric_namespace" {
+  type = string
+  default = "lambda-ingestion-function"
+}

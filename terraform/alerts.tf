@@ -5,7 +5,7 @@ resource "aws_cloudwatch_log_metric_filter" "lambda_ingestion_error_filter" {
   
   metric_transformation {
       name = "ErrorCount"  ## gives a name to the metric (possible var?)
-      namespace = "AWS/Lambda"  ## name of the metric namespace (possible var?)
+      namespace = var.ingestion_metric_namespace  ## name of the metric namespace (possible var?)
       value = "1" ## the value published to the metric each time the pattern is found  
   }
 }
@@ -18,13 +18,8 @@ resource "aws_cloudwatch_metric_alarm" "lambda_ingestion_error_alarm" {
     statistic = "Sum"
     threshold = 1       ## alarm should be triggered by presence of 1 or more errors
     metric_name = aws_cloudwatch_log_metric_filter.lambda_ingestion_error_filter.name
-    namespace = "AWS/Lambda"
+    namespace = var.ingestion_metric_namespace
     alarm_description = "This metric monitors the lambda ingestion function log for error messages"
     alarm_actions = []  ## this list must contain the arn of the sns topic once created
     insufficient_data_actions = []
-}
-
-variable "error_tag" {
-  type = "string"
-  default = "ERROR"
 }
