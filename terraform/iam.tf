@@ -43,9 +43,10 @@ resource "aws_iam_role_policy_attachment" "lambda_s3_write_policy_attachment" {
 
 # CLOUDWATCH LOGS POLICY AND ATTACHMENT TO LAMBDA ROLE
 
-data "aws_cloudwatch_log_group" "lambda_log_group" {
+resource "aws_cloudwatch_log_group" "ingestion_lambda_log_group"{
   name = "/aws/lambda/${var.ingestion_lambda_name}"
 }
+
 
 data "aws_iam_policy_document" "cloudwatch_logs_policy_document" {
   statement {
@@ -58,7 +59,7 @@ data "aws_iam_policy_document" "cloudwatch_logs_policy_document" {
     ]
 
     resources = [
-      data.aws_cloudwatch_log_group.lambda_log_group.arn
+      "*"
     ]
   }
   }
