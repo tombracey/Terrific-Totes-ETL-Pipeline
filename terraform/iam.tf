@@ -23,7 +23,7 @@ resource "aws_iam_role" "ingestion_lambda_role" {
 
 data "aws_iam_policy_document" "s3_data_policy_doc" {
   statement {
-    actions = ["s3:*"]
+    actions = ["s3:PutObject"]
     resources = [aws_s3_bucket.ingestion_bucket.arn]
   }
 }
@@ -43,24 +43,20 @@ resource "aws_iam_role_policy_attachment" "lambda_s3_write_policy_attachment" {
 
 # CLOUDWATCH LOGS POLICY AND ATTACHMENT TO LAMBDA ROLE
 
-resource "aws_cloudwatch_log_group" "ingestion_lambda_log_group"{
-  name = "/aws/lambda/${var.ingestion_lambda_name}"
-}
-
 
 data "aws_iam_policy_document" "cloudwatch_logs_policy_document" {
   statement {
-    sid = "1"
+    
 
-    actions = [
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents"
-    ]
+    actions = ["logs:CreateLogGroup"]
 
     resources = [
-      "*"
+      "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"
     ]
+  }
+  statement {
+    actions = ["logs:CreateLogStream", "logs:PutLogEvents"]
+    resources = ["arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.ingestion_lambda_name}:*"]
   }
   }
 

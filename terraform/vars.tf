@@ -8,9 +8,9 @@ variable "ingestion_lambda_name" {
     default = "gb-ttotes-ingestion-lambda"
 }
 
-variable "ingestion_code_bucket_prefix" {
+variable "code_bucket_prefix" {
     type = string
-    default = "code-bucket-ingestion-lambda"
+    default = "code-bucket-"
 }
 
 variable "python_runtime" {
@@ -20,5 +20,5 @@ variable "python_runtime" {
 
 variable "ingestion_bucket_prefix" {
     type = string
-    default = "ingestion-bucket"
+    default = "ingestion-bucket-"
 }
