@@ -1,7 +1,7 @@
 from src.connection import connect_to_db, close_connection
-import datetime
+from datetime import datetime
 import json
-
+import boto3
 """
 TABLES TO INGEST
 counterparty
@@ -18,30 +18,60 @@ transaction
 """
 
 def get_data():
-    output_list = []
     db = connect_to_db()
-    # test_db = db.run('SELECT * FROM counterparty;')
-    # print(test_db)
-    # for row in test_db:
-    #     output_list.append({})
 
-    # output_dict = {'counterparty': test_db}
+    # last_update = ???
 
+    counterparty = db.run("SELECT * FROM counterparty;")
+    currency = db.run("SELECT * FROM currency;")
+    department = db.run("SELECT * FROM department;")
+    design = db.run("SELECT * FROM design;")
+    staff = db.run("SELECT * FROM staff;")
+    sales_order = db.run("SELECT * FROM sales_order;")
+    address = db.run("SELECT * FROM address;")
+    payment = db.run("SELECT * FROM payment;")
+    purchase_order = db.run("SELECT * FROM purchase_order;")
+    payment_type = db.run("SELECT * FROM payment_type;")
+    transaction = db.run("SELECT * FROM transaction;")
+    
+    data = {}
+    data["counterparty"] = counterparty
+    data["currency"] = currency
+    data["department"] = department
+    data["design"] = design
+    data["staff"] = staff
+    data["sales_order"] = sales_order
+    data["address"] = address
+    data["payment"] = payment
+    data["purchase_order"] = purchase_order
+    data["payment_type"] = payment_type
+    data["transaction"] = transaction
+    
+    json_data = json.dumps(data, default=str)
+    return json_data
+
+# def get_data():
+#     output_list = []
+#     db = connect_to_db()
+#     test_db = db.run('''
+#         SELECT json_agg(row_to_json(counterparty))::text
+#         FROM counterparty
+#         );''')
+   
+#     # print(test_db)
+#     # for row in test_db:
+#     # output_list.append({})
+#     # output_dict = {'counterparty': test_db}
     
 
-
-    test_db = db.run(
-        '''COPY (
-            SELECT json_agg(row_to_json(counterparty))::text 
-            FROM counterparty)
-          ) TO XXXXXXXXX'''
-    print(test_db)
-
-    # with open('test_db.txt', 'w') as f:
-    #     db_json = json.dumps(test_db, default=str)
-    #     f.write(db_json)
-    
-    
+#     with open('totesys.json', 'w') as f:
+#         db_json = json.dumps(<data>, default=str)
+#         f.write(db_json)
 
 
-get_data()
+#     s3 = boto3.client('s3')
+#     s3.put_object(Body=json_data, Bucket=bucket_name, Key=file_name)
+#     return {
+#         'statusCode': 200,
+#         'body': 'File uploaded successfully.'
+#         }

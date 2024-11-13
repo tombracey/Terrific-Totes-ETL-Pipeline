@@ -1,6 +1,15 @@
-# from src.ingestion_lambda import ingestion_lambda
+from src.ingestion_lambda import *
 from src.connection import connect_to_db, close_connection
-import datetime
+from datetime import datetime
+import pytest
+
+@pytest.fixture()
+def test_table():
+    db = connect_to_db()
+    table = db.run('''CREATE TABLE IF NOT EXISTS test_table
+    AS (SELECT * FROM counterparty);''')
+    close_connection(db)
+    return table
 
 def test_connection_can_access_table():
     test_db = connect_to_db()
