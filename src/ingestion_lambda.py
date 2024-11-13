@@ -1,5 +1,5 @@
 from src.connection import connect_to_db, close_connection
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import boto3
 """
@@ -17,12 +17,21 @@ payment_type
 transaction
 """
 
-def get_data():
+last_update = datetime.now() - timedelta(minutes = 20)
+print(last_update)
+
+def get_counterparty():
+    db = connect_to_db()
+    counterparty = db.run("SELECT * FROM counterparty;")
+    print(counterparty)
+    col_names = [col['name'] for col in db.columns]
+    print(col_names)
+    return counterparty
+
+def get_data(last_update):
     db = connect_to_db()
 
-    # last_update = ???
-
-    counterparty = db.run("SELECT * FROM counterparty;")
+    counterparty = db.run("SELECT * FROM counterparty WHERE last_updated > :last_update;", last_update = last_update)
     currency = db.run("SELECT * FROM currency;")
     department = db.run("SELECT * FROM department;")
     design = db.run("SELECT * FROM design;")
@@ -33,7 +42,7 @@ def get_data():
     purchase_order = db.run("SELECT * FROM purchase_order;")
     payment_type = db.run("SELECT * FROM payment_type;")
     transaction = db.run("SELECT * FROM transaction;")
-    
+
     data = {}
     data["counterparty"] = counterparty
     data["currency"] = currency
@@ -47,8 +56,12 @@ def get_data():
     data["payment_type"] = payment_type
     data["transaction"] = transaction
     
+
+
     json_data = json.dumps(data, default=str)
     return json_data
+
+get_data(last_update)    
 
 # def get_data():
 #     output_list = []
