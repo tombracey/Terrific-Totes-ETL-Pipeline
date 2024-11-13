@@ -17,8 +17,12 @@ payment_type
 transaction
 """
 
-last_update = datetime.now() - timedelta(minutes = 20)
-print(last_update)
+# last_update = datetime.now() - timedelta(minutes = 20)
+# print(last_update)
+last_update = datetime(2023, 11, 3, 14, 20, 51, 563000)
+
+start_date = last_update
+end_date = datetime.now()
 
 def get_counterparty():
     db = connect_to_db()
@@ -31,7 +35,7 @@ def get_counterparty():
 def get_data(last_update):
     db = connect_to_db()
 
-    counterparty = db.run("SELECT * FROM counterparty WHERE last_updated > :last_update;", last_update = last_update)
+    counterparty = db.run("SELECT * FROM counterparty WHERE last_updated::timestamp > :last_update;", last_update = last_update)
     currency = db.run("SELECT * FROM currency;")
     department = db.run("SELECT * FROM department;")
     design = db.run("SELECT * FROM design;")
@@ -56,10 +60,7 @@ def get_data(last_update):
     data["payment_type"] = payment_type
     data["transaction"] = transaction
     
-
-
-    json_data = json.dumps(data, default=str)
-    return json_data
+    return data
 
 get_data(last_update)    
 
