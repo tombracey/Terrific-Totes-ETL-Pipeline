@@ -35,7 +35,10 @@ def get_counterparty():
 def get_data(last_update):
     db = connect_to_db()
 
-    counterparty = db.run("SELECT * FROM counterparty WHERE last_updated::timestamp > :last_update;", last_update = last_update)
+    # counterparty = db.run("SELECT * FROM counterparty WHERE last_updated > :last_update;", last_update = last_update)
+
+    counterparty = db.run(f"SELECT * FROM counterparty WHERE last_updated > '{last_update}';")
+
     currency = db.run("SELECT * FROM currency;")
     department = db.run("SELECT * FROM department;")
     design = db.run("SELECT * FROM design;")

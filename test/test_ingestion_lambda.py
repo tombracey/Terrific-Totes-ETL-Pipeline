@@ -33,11 +33,13 @@ connection = Mock()
 connection.run.return_value = dummy_counterparty_table
 connection.columns = [{"name": "id"}, {"name":"dd"}]
 
-@patch("src.ingestion_lambda.connect_to_db", return_value=connection)
-def test_ingests_updated_rows_of_counterparty_table(mock_dt):
+# @patch("src.ingestion_lambda.connect_to_db", return_value=connection)
+def test_ingests_updated_rows_of_counterparty_table():
     # get_counterparty()
     # patcher = patch("src.ingestion_lambda", return_value=dummy_counterparty_table)
     # patcher.start()
     test_datetime = datetime.datetime(2023, 11, 3, 14, 20, 51, 563000)
+    test_datetime = '2023-11-03'
     print(get_data(test_datetime)['counterparty'])
     assert get_data(test_datetime)['counterparty'] == [[2, 'Dummy LPR', 28, 'Melba Sanford', 'Jean Hane III', datetime.datetime(2024, 11, 3, 14, 20, 51, 563000), datetime.datetime(2024, 11, 3, 14, 20, 51, 563000)]]
+    
