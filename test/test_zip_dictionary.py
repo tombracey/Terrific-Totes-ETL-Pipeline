@@ -6,13 +6,9 @@ from datetime import datetime
 
 def test_datetime_to_strftime_returns_correct_format():
     current_time = datetime.now()
-    test_rows = [["ruby", 31, current_time], ["minal", 30, current_time]]
-    expected = [
-        ["ruby", 31, current_time.strftime("%Y-%m-%d %H:%M:%S")],
-        ["minal", 30, current_time.strftime("%Y-%m-%d %H:%M:%S")],
-    ]
-
-    assert datetime_to_strftime(test_rows) == expected
+    test_row = ["ruby", 31, current_time]
+    expected = ["ruby", 31, current_time.strftime("%Y-%m-%d %H:%M:%S:%f")]
+    assert datetime_to_strftime(test_row) == expected
 
 
 # Tests for zip_dictionary:

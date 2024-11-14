@@ -1,14 +1,13 @@
 from datetime import datetime
 
-def datetime_to_strftime(rows):
-    new_rows = rows.copy()
-    for row in new_rows:
-        for item in row:
-            if isinstance(item, datetime):
-                new_item = item.strftime("%Y-%m-%d %H:%M:%S")
-                item_index = row.index(item)
-                row[item_index] = new_item
-    return new_rows
+# for row in new_rows:
+def datetime_to_strftime(row):
+    new_row = row.copy()
+    for i in range(len(row)):
+        if isinstance(row[i], datetime):
+            new_item = row[i].strftime("%Y-%m-%d %H:%M:%S:%f")
+            new_row[i] = new_item
+    return new_row
 
 
 def zip_dictionary(new_rows, columns):
