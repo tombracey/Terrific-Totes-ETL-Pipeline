@@ -7,3 +7,4 @@ safety
 bandit
 coverage
 python-dotenv
+pgmock
