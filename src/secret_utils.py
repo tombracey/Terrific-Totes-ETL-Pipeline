@@ -1,6 +1,5 @@
-import boto3, json
+import json
 
-# sm_client = boto3.client('secretsmanager')
 
 def store_secret(sm_client, secret_id, user, password):
     secret_string = json.dumps({
@@ -16,10 +15,3 @@ def retrieve_secret(sm_client, secret_id):
     secret_value = json.loads(secret_json)
     return secret_value
 
-
-
-# def create_user_password_secret(user, password):
-#     return json.dumps({
-#         "user": user,
-#         "password": password
-#     })

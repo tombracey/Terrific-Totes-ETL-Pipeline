@@ -2,11 +2,16 @@ from src.secret_utils import store_secret, retrieve_secret
 import pytest, boto3
 from moto import mock_aws
 
-sm_client = boto3.client('secretsmanager')
+
+@pytest.fixture
+def sm_client():
+    client = boto3.client('secretsmanager')
+    yield client
+    client.close()
 
 
 @mock_aws
-def test_secrets_are_stored_successfully():
+def test_secrets_are_stored_successfully(sm_client):
     store_secret(sm_client, "my_secret", "keen_green_bean_1", "pa55word")
     list_secrets = sm_client.list_secrets()
     assert list_secrets['SecretList'][0]['Name'] == "my_secret"
@@ -21,7 +26,7 @@ def test_secrets_are_stored_successfully():
 
 
 @mock_aws
-def test_secret_can_be_retrieved():
+def test_secret_can_be_retrieved(sm_client):
     store_secret(sm_client, "my_secret", "keen_green_bean_1", "pa55word")
     store_secret(sm_client, "our_secret", "keen_green_bean_2", "pa55word")
     store_secret(sm_client, "your_secret", "keen_green_bean_3", "pa55word")
