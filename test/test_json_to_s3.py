@@ -2,6 +2,7 @@ from utils.json_to_s3 import json_to_s3
 from moto import mock_aws
 import pytest, os, boto3
 
+
 @pytest.fixture(scope="function")
 def aws_credentials():
     """Mocked AWS Credentials for moto"""
@@ -10,6 +11,7 @@ def aws_credentials():
     os.environ["AWS_SECURITY_TOKEN"] = "testing"
     os.environ["AWS_SESSION_TOKEN"] = "testing"
     os.environ["AWS_DEFAULT_REGION"] = "eu-west-2"
+
 
 @pytest.fixture
 def s3_client(aws_credentials):
@@ -24,19 +26,22 @@ def test_json_to_s3_uploads_json(s3_client):
         Bucket="test-bucket",
         CreateBucketConfiguration={
             "LocationConstraint": os.environ["AWS_DEFAULT_REGION"]
-         },
-     )
+        },
+    )
     test_json = '{"name":"John", "age":30, "car":null}'
     test_folder = "test-folder"
     test_file_name = "test-file-name.json"
-     
-    json_to_s3(s3_client, test_json,"test-bucket",test_folder, test_file_name)
+
+    json_to_s3(s3_client, test_json, "test-bucket", test_folder, test_file_name)
     # print(s3_client.list_objects(Bucket="test-bucket"))
     object = s3_client.list_objects(Bucket="test-bucket")
-    
-    assert object['Contents'][0]["Key"] == f"{test_folder}/{test_file_name}"
-    response = s3_client.get_object(Bucket="test-bucket", Key = f"{test_folder}/{test_file_name}")
-    # print(response["Body"].read().decode("UTF-8")) 
-    assert response["Body"].read().decode("UTF-8") == '{"name":"John", "age":30, "car":null}'
 
-    
+    assert object["Contents"][0]["Key"] == f"{test_folder}/{test_file_name}"
+    response = s3_client.get_object(
+        Bucket="test-bucket", Key=f"{test_folder}/{test_file_name}"
+    )
+    # print(response["Body"].read().decode("UTF-8"))
+    assert (
+        response["Body"].read().decode("UTF-8")
+        == '{"name":"John", "age":30, "car":null}'
+    )
