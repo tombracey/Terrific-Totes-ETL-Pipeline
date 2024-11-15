@@ -2,5 +2,7 @@
 planning-questions.md
 .env
 venv
-__pycache__
 dependencies/*
+rotater.py
+**pycache**
+venv
