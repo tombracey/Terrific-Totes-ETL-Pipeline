@@ -1,7 +1,4 @@
-from src.connection import connect_to_db, close_connection
-from datetime import datetime, timedelta
-import json
-import boto3
+
 """
 TABLES TO INGEST
 counterparty
@@ -58,34 +55,3 @@ def get_data(db, last_update):
 
 
 
-## DELETE THE FOLLOWING CODE?
-
-"""
-get_data(last_update)    
-
-def get_data():
-    output_list = []
-    db = connect_to_db()
-    test_db = db.run('''
-        SELECT json_agg(row_to_json(counterparty))::text
-        FROM counterparty
-        );''')
-   
-    # print(test_db)
-    # for row in test_db:
-    # output_list.append({})
-    # output_dict = {'counterparty': test_db}
-    
-
-    with open('totesys.json', 'w') as f:
-        db_json = json.dumps(<data>, default=str)
-        f.write(db_json)
-
-
-    s3 = boto3.client('s3')
-    s3.put_object(Body=json_data, Bucket=bucket_name, Key=file_name)
-    return {
-        'statusCode': 200,
-        'body': 'File uploaded successfully.'
-        }
-"""
