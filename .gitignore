@@ -3,3 +3,4 @@ planning-questions.md
 dependencies/**
 rotater.py
 **pycache**
+venv
