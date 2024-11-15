@@ -12,14 +12,19 @@ def sm_client():
 
 @mock_aws
 def test_secrets_are_stored_successfully(sm_client):
-    store_secret(sm_client, "my_secret", "keen_green_bean_1", "pa55word")
+    store_secret(sm_client, "my_secret", [["user", "keen_green_bean_1"], ["password", "pa55word"]])
     list_secrets = sm_client.list_secrets()
     assert list_secrets['SecretList'][0]['Name'] == "my_secret"
 
-    store_secret(sm_client, "our_secret", "keen_green_bean_2", "pa55word")
-    store_secret(sm_client, "your_secret", "keen_green_bean_3", "pa55word")
+    store_secret(sm_client, "second_secret", ["user", "keen_green_bean_1"])
     list_secrets = sm_client.list_secrets()
-    assert len(list_secrets['SecretList']) == 3
+    assert list_secrets['SecretList'][1]['Name'] == "second_secret"
+
+    store_secret(sm_client, "our_secret", [["user", "keen_green_bean_2"], ["password", "pa55word"]])
+    store_secret(sm_client, "your_secret", [["user", "keen_green_bean_3"], ["password", "pa55word"]])
+
+    list_secrets = sm_client.list_secrets()
+    assert len(list_secrets['SecretList']) == 4
     secret_names = [secret['Name'] for secret in list_secrets['SecretList']]
     assert "our_secret" in secret_names
     assert "your_secret" in secret_names
@@ -27,9 +32,9 @@ def test_secrets_are_stored_successfully(sm_client):
 
 @mock_aws
 def test_secret_can_be_retrieved(sm_client):
-    store_secret(sm_client, "my_secret", "keen_green_bean_1", "pa55word")
-    store_secret(sm_client, "our_secret", "keen_green_bean_2", "pa55word")
-    store_secret(sm_client, "your_secret", "keen_green_bean_3", "pa55word")
+    store_secret(sm_client, "my_secret", [["user", "keen_green_bean_1"], ["password", "pa55word"]])
+    store_secret(sm_client, "our_secret", [["user", "keen_green_bean_2"], ["password", "pa55word"]])
+    store_secret(sm_client, "your_secret", [["user", "keen_green_bean_3"], ["password", "pa55word"]])
 
     output = retrieve_secret(sm_client, "my_secret")
     assert output['user'] == "keen_green_bean_1"
