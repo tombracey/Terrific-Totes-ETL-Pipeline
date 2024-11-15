@@ -28,6 +28,11 @@ variable "error_tag" {
   default = "ERROR"
 }
 
+variable "metric_transformation_name" {
+  type = string
+  default = "PublishValue1"
+}
+
 variable "ingestion_metric_namespace" {
   type = string
   default = "lambda-ingestion-function"

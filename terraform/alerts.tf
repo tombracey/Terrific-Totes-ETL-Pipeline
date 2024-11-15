@@ -4,7 +4,7 @@ resource "aws_cloudwatch_log_metric_filter" "lambda_ingestion_error_filter" {
   log_group_name = aws_cloudwatch_log_group.ingestion_lambda_log_group.name  ## name of log group to watch (possible var?)
   
   metric_transformation {
-      name = "ErrorCount"  ## gives a name to the metric (possible var?)
+      name = var.metric_transformation_name  ## gives a name to the metric (possible var?)
       namespace = var.ingestion_metric_namespace  ## name of the metric namespace (possible var?)
       value = "1" ## the value published to the metric each time the pattern is found  
   }
