@@ -7,7 +7,7 @@ load_dotenv(override=True)
 
 
 def connect_to_db():
-    sm_client = boto3.client("secretsmanager")
+    sm_client = boto3.client("secretsmanager", "eu-west-2")
     credentials = retrieve_secret(sm_client, "gb-ttotes/totesys-oltp-credentials")
 
     return pg8000.native.Connection(
