@@ -2,6 +2,7 @@ from src.connection import connect_to_db
 from src.connection import connect_to_db, close_connection
 import datetime
 
+
 def test_connection_can_access_table():
     conn = connect_to_db()
     query = "SELECT * FROM counterparty LIMIT 3;"
@@ -14,4 +15,3 @@ def test_connection_can_access_table():
     assert type(expect[0][5]) == datetime.datetime
     assert type(expect[0][6]) == datetime.datetime
     close_connection(conn)
-    
