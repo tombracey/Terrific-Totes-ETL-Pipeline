@@ -1,6 +1,8 @@
 .details.txt
 planning-questions.md
-dependencies/**
+.env
+venv
+dependencies/*
 rotater.py
 **pycache**
 venv

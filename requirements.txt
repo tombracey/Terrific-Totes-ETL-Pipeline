@@ -2,8 +2,5 @@ pg8000
 pytest
 boto3
 moto
+python-dotenv
 pytest-cov
-# black
-# safety
-# bandit
-# coverage
