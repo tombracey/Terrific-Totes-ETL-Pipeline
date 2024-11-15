@@ -5,7 +5,7 @@ def datetime_to_strftime(row):
     new_row = row.copy()
     for i in range(len(row)):
         if isinstance(row[i], datetime):
-            new_item = row[i].strftime("%Y-%m-%d %H:%M:%S:%f")
+            new_item = row[i].strftime("%Y-%m-%d %H:%M:%S.%f")
             new_row[i] = new_item
     return new_row
 

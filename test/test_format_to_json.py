@@ -17,7 +17,7 @@ def test_list_of_dicts_returns_json_string():
 
 
 def test_list_of_dicts_including_datetime():
-    current_time = (datetime.now()).strftime("%Y-%m-%d %H:%M:%S:%f")
+    current_time = (datetime.now()).strftime("%Y-%m-%d %H:%M:%S.%f")
     test_input = [{'a': 1, 'b': 2, 'c': current_time}, {'d': 4, 'e': 5, 'f': current_time}]
     output = format_to_json(test_input)
     assert current_time in output
