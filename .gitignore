@@ -1,6 +1,8 @@
 .details.txt
 planning-questions.md
-dependencies/**
+.env
+venv
+dependencies/*
 rotater.py
 temp/
 **/.vscode/
@@ -15,3 +17,4 @@ venv/
 terraform/init.sh
 *.tfstate*
 .env
+**pycache**
