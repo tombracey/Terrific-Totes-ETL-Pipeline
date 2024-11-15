@@ -20,15 +20,23 @@ def s3_client(aws_credentials):
 
 def test_json_to_s3_uploads_json(s3_client):
     #  test_file_directory = f"{os.getcwd()}/test"
-     s3_client.create_bucket(
-         Bucket="test",
-         CreateBucketConfiguration={
-             "LocationConstraint": os.environ["AWS_DEFAULT_REGION"]
+    s3_client.create_bucket(
+        Bucket="test-bucket",
+        CreateBucketConfiguration={
+            "LocationConstraint": os.environ["AWS_DEFAULT_REGION"]
          },
      )
-     test_json = '{"name":"John", "age":30, "car":null}'
-     response = json_to_s3('{"name":"John", "age":30, "car":null}',"test")
-     print(response)
-    #  assert isinstance(response), json
+    test_json = '{"name":"John", "age":30, "car":null}'
+    test_folder = "test-folder"
+    test_file_name = "test-file-name.json"
+     
+    json_to_s3(s3_client, test_json,"test-bucket",test_folder, test_file_name)
+    # print(s3_client.list_objects(Bucket="test-bucket"))
+    object = s3_client.list_objects(Bucket="test-bucket")
+    
+    assert object['Contents'][0]["Key"] == f"{test_folder}/{test_file_name}"
+    response = s3_client.get_object(Bucket="test-bucket", Key = f"{test_folder}/{test_file_name}")
+    # print(response["Body"].read().decode("UTF-8")) 
+    assert response["Body"].read().decode("UTF-8") == '{"name":"John", "age":30, "car":null}'
 
     

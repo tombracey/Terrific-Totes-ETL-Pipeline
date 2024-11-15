@@ -1,11 +1,21 @@
 import  boto3, os
 
-def json_to_s3(data, bucket_name):
-    
-    with open(f"{os.getcwd()}/{data}.json", "w", encoding="UTF-8") as file:
-        file.write(data)
+""" takes json string, writes as local file and then uploads to s3 bucket;
+    name of table data has come from, 
+    bucket name data to be uploaded to,
+    folder - path in bucket
+    file_name - name of data when stored in bucket """
 
-    s3 = boto3.resource('s3')    
-    s3.Bucket(bucket_name).upload_file(f"{os.getcwd()}/{data}.json", bucket_name,f"{data}.json")
+
+def json_to_s3(client, json_string, bucket_name, folder, file_name):
+    
+    with open(f"{os.getcwd()}/{file_name}", "w", encoding="UTF-8") as file:
+        file.write(json_string)
+
+  
+    response = client.upload_file(f"{os.getcwd()}/{file_name}", bucket_name,f"{folder}/{file_name}")
    
-   #file name for s3 needs date time ingested
+    os.remove(f"{os.getcwd()}/{file_name}")
+    
+    return response
+   #(file name for s3 in main function will need date time ingested)
