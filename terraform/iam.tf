@@ -13,10 +13,32 @@ data "aws_iam_policy_document" "trust_policy" {
   
 }
 
-
 resource "aws_iam_role" "ingestion_lambda_role" {
   name_prefix        = "role-${var.ingestion_lambda_name}"
   assume_role_policy = data.aws_iam_policy_document.trust_policy.json
+}
+
+# LAMBDA UPDATE AND RETRIEVE SECRETS ATTACHMENT
+
+data "aws_iam_policy_document" "secrets_manager_data_policy_doc" {
+  statement {
+    actions = ["secretsmanager:GetSecretValue", "secretsmanager:CreateSecret", "secretsmanager:UpdateSecret"]
+    resources = ["arn:aws:secretsmanager:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:secret:gb-ttotes/*"]
+  }
+  statement {
+    actions = ["secretsmanager:ListSecrets"]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "secrets_manager_read_write_policy" {
+  name_prefix = "secrets-manager-policy-${var.ingestion_lambda_name}"
+  policy = data.aws_iam_policy_document.secrets_manager_data_policy_doc.json
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_secrets_manager_read_write_policy_attachment" {
+  role = aws_iam_role.ingestion_lambda_role.name
+  policy_arn = aws_iam_policy.secrets_manager_read_write_policy.arn
 }
 
 # LAMBDA s3 WRITE PERMISSIONS AND ATTACHMENT
@@ -24,7 +46,7 @@ resource "aws_iam_role" "ingestion_lambda_role" {
 data "aws_iam_policy_document" "s3_data_policy_doc" {
   statement {
     actions = ["s3:PutObject"]
-    resources = [aws_s3_bucket.ingestion_bucket.arn]
+    resources = ["${aws_s3_bucket.ingestion_bucket.arn}/*"]
   }
 }
 # we have given permission to write into any s3 bucket, 

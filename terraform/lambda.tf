@@ -9,17 +9,17 @@ resource "aws_lambda_function" "ingestion_lambda" {
   timeout = 60
   source_code_hash = filebase64sha256("${path.module}/../src/${var.ingestion_lambda_filename}.py")
   publish = true
+  layers           = [ aws_lambda_layer_version.dependencies.arn ]
+
+  depends_on       = [
+    aws_s3_object.ingestion_lambda_code,
+    aws_s3_object.lambda_layer
+  ]
 
   environment {
       variables = {
         INGESTION_BUCKET_NAME = aws_s3_bucket.ingestion_bucket.id
       }
     }
-
 }
-
-
-
-# we think we will need to add a layers= to this once layer is completed
-
 
