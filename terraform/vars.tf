@@ -18,9 +18,9 @@ variable "python_runtime" {
   default = "python3.12"
 }
 
-variable "ingestion_bucket_name" {
+variable "ingestion_bucket_prefix" {
     type = string
-    default = "green-bean-ingestion-bucket"
+    default = "green-bean-ingestion-bucket-"
 }
 
 variable "error_tag" {

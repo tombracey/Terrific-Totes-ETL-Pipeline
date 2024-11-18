@@ -5,9 +5,7 @@ import os
 import pg8000.native
 from dotenv import load_dotenv
 
-
-
-
+BUCKET_NAME = os.environ["INGESTION_BUCKET_NAME"]
 
 # RETRIEVE SECRET UTIL
 
@@ -30,22 +28,6 @@ def update_secret(sm_client, secret_id, keys_and_values):
     response = sm_client.update_secret(SecretId=secret_id, SecretString=secret_string)
     return response
 
-
-
-"""
-TABLES TO INGEST
-counterparty
-currency
-department
-design
-staff
-sales_order
-address
-payment
-purchase_order
-payment_type
-transaction
-"""
 # GET DATA
 
 def get_data(db, last_update):
@@ -58,8 +40,6 @@ def get_data(db, last_update):
 
         query = db.run(f"SELECT * FROM {table} WHERE last_updated >= :last_update;", last_update=last_update)
         data[table] = (query, [col["name"] for col in db.columns])
-
-
 
     # counterparty = db.run(
     #     "SELECT * FROM counterparty WHERE last_updated >= :last_update;",
@@ -223,7 +203,7 @@ def ingestion_lambda_handler(event, context):
         json_data = format_to_json(zipped_dict)
         file_name = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
         folder_name = table
-        json_to_s3(s3_client, json_data, "green-bean-ingestion-bucket", folder_name, file_name)
+        json_to_s3(s3_client, json_data, BUCKET_NAME, folder_name, file_name)
 
 if __name__ == "__main__":
     ingestion_lambda_handler({}, {})
