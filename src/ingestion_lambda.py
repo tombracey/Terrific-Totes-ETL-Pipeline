@@ -192,7 +192,7 @@ def store_secret(sm_client, secret_id, keys_and_values):
     return response
 
 # LAMBDA HANDLER
-def ingestion_lambda_handler():
+def ingestion_lambda_handler(event, context):
     db = connect_to_db()
     sm_client = boto3.client('secretsmanager')
     secret_request = sm_client.list_secrets()
@@ -211,7 +211,8 @@ def ingestion_lambda_handler():
         update_secret(sm_client, 'last_update', ['last_update', date_and_time])
     
     data = get_data(db, last_update)
-    
+    s3_client = boto3.client('s3')
+
     for table in data:
         rows = data[table][0]
         columns = data[table][1]
@@ -222,6 +223,7 @@ def ingestion_lambda_handler():
         json_data = format_to_json(zipped_dict)
         file_name = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
         folder_name = table
-        s3_client = boto3.client('s3')
         json_to_s3(s3_client, json_data, "green-bean-ingestion-bucket", folder_name, file_name)
 
+if __name__ == "__main__":
+    ingestion_lambda_handler({}, {})

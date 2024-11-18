@@ -37,3 +37,8 @@ variable "ingestion_metric_namespace" {
   type = string
   default = "lambda-ingestion-function"
 }
+
+variable "ingestion_lambda_filename" {
+  type = string
+  default = "ingestion_lambda"
+}
