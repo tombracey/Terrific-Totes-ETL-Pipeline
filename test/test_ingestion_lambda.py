@@ -1,14 +1,24 @@
-from src.ingestion_lambda import get_data
+from src.ingestion_lambda import *
 from src.connection import connect_to_db, close_connection
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 import datetime
 import pytest
+from moto import mock_aws
+import os
 
 
 @pytest.fixture
 def conn_fixture():
     conn = connect_to_db()
     yield conn
+
+@pytest.fixture
+def aws_creds():
+    os.environ["AWS_ACCESS_KEY_ID"] = "test"
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "test"
+    os.environ["AWS_SECURITY_TOKEN"] = "test"
+    os.environ["AWS_SESSION_TOKEN"] = "test"
+    os.environ["AWS_DEFAULT_REGION"] = "eu-west-2"
 
 
 def test_gets_data_returns_updated_rows_from_each_table(conn_fixture):
@@ -111,3 +121,16 @@ def test_get_data_ouputs_the_correct_data_intact():
             dummy_counterparty_table,
             ["fake_column_1", "fake_column_2"],
         )
+
+@mock_aws
+def test_ingestion_lambda_handler_adds_item_to_bucket(aws_creds):
+
+   
+    test_client = boto3.client('s3')
+    with patch('boto3.client', test_client):
+
+        result = ingestion_lambda_handler()
+    objects = test_client.list_objects(Bucket='green-bean-ingestion-bucket')
+    print(objects)
+    assert objects
+
