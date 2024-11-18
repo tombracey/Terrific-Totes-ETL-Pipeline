@@ -1,3 +1,29 @@
+def ingestion_lambda_handler():
+    db = connect_to_db()
+    sm_client = boto3.client('secretsmanager')
+    last_updated_secret = retrieve_secret(sm_client, 'last_update')
+    last_update = last_updated_secret['last_update']
+
+    date_and_time = datetime.datetime.now().strftime()
+    update_secret(sm_client, 'last_update', ['last_update', date_and_time])
+    
+    data = get_data(db, last_update)
+    
+    for table in data:
+        rows = data[table][0]
+        columns = data[table][1]
+        new_rows = []
+        for row in rows:
+            new_rows.append(date_to_strftime(row))
+        zipped_dict = zip_dictionary(new_rows, columns)
+        json_data = format_to_json(zipped_dict)
+        file_name = datetime.datetime.now().strftime()
+        folder_name = table
+        s3_client = boto3.client('s3')
+        json_to_s3(s3_client, json_data, "green-bean-ingestion-bucket", folder_name, file_name)
+
+
+
 """
 TABLES TO INGEST
 counterparty
