@@ -37,3 +37,8 @@ variable "ingestion_metric_namespace" {
   type = string
   default = "lambda-ingestion-function"
 }
+
+variable "state_machine_name" {
+    type = string
+    default = "gb-ttotes-state-machine"
+}
