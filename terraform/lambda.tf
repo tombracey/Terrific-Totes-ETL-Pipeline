@@ -6,7 +6,8 @@ resource "aws_lambda_function" "ingestion_lambda" {
   s3_key = aws_s3_object.ingestion_lambda_code.key
   handler       = "${var.ingestion_lambda_filename}.ingestion_lambda_handler"
   runtime = var.python_runtime
-  timeout = 60
+  timeout = 180
+  memory_size = 512
   source_code_hash = filebase64sha256("${path.module}/../src/${var.ingestion_lambda_filename}.py")
   publish = true
   layers           = [ aws_lambda_layer_version.dependencies.arn ]
