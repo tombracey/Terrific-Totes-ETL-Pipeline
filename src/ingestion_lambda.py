@@ -5,12 +5,12 @@ import os
 from pg8000.native import Connection, identifier
 from dotenv import load_dotenv
 import logging
-
-
 from collections.abc import Mapping, Iterable
 from decimal import Decimal, Context, MAX_PREC
 
-# _context = Context(prec=MAX_PREC)  # optional, to handle more than the default 28 digits, if necessary
+
+logger = logging.getLogger("logger")
+logger.setLevel(logging.INFO)
 
 
 class DecimalEncoder(json.JSONEncoder):
@@ -31,13 +31,7 @@ class DecimalEncoder(json.JSONEncoder):
         return super().encode(obj)
 
 
-BUCKET_NAME = os.environ["INGESTION_BUCKET_NAME"]
-logger = logging.getLogger("logger")
-logger.setLevel(logging.INFO)
-
 # RETRIEVE SECRET UTIL
-
-
 def retrieve_secret(sm_client, secret_id):
     logger.info(f"retrieving secret {secret_id}")
     secret_json = sm_client.get_secret_value(SecretId=secret_id)["SecretString"]
@@ -46,8 +40,6 @@ def retrieve_secret(sm_client, secret_id):
 
 
 # UPDATE SECRET
-
-
 def update_secret(sm_client, secret_id, keys_and_values):
     logger.info(f"updating secret {secret_id}")
     if isinstance(keys_and_values[0], list):
@@ -63,8 +55,6 @@ def update_secret(sm_client, secret_id, keys_and_values):
 
 
 # GET DATA
-
-
 def get_data(db, last_update):
 
     data = {}
@@ -95,8 +85,6 @@ def get_data(db, last_update):
 
 
 # DATE TO STRFTIME
-
-
 def datetime_to_strftime(row):
     new_row = row.copy()
     for i in range(len(row)):
@@ -107,8 +95,6 @@ def datetime_to_strftime(row):
 
 
 # ZIP DICTIONARY
-
-
 def zip_dictionary(new_rows, columns):
     zipped_dict = [dict(zip(columns, row)) for row in new_rows]
 
@@ -116,8 +102,6 @@ def zip_dictionary(new_rows, columns):
 
 
 # FORMAT TO JSON
-
-
 def format_to_json(list_of_dicts):
     formatted_data = json.dumps(list_of_dicts, cls=DecimalEncoder)
     return formatted_data
@@ -148,6 +132,10 @@ def connect_to_db():
     )
 
 
+def close_connection(conn):
+    conn.close()
+
+
 # STORE SECRET (create)
 def store_secret(sm_client, secret_id, keys_and_values):
 
@@ -165,9 +153,8 @@ def store_secret(sm_client, secret_id, keys_and_values):
 
 # LAMBDA HANDLER
 def ingestion_lambda_handler(event, context):
-    last_update_name = "gb-ttotes/last-update"
+    BUCKET_NAME = os.environ["INGESTION_BUCKET_NAME"]
 
-    db = connect_to_db()
     sm_client = boto3.client("secretsmanager")
     secret_request = sm_client.list_secrets()
     list_of_secrets = secret_request["SecretList"]
@@ -186,7 +173,10 @@ def ingestion_lambda_handler(event, context):
         date_and_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
         update_secret(sm_client, last_update_secret_id, ["last_update", date_and_time])
 
+    db = connect_to_db()
     data = get_data(db, last_update)
+    close_connection(db)
+
     s3_client = boto3.client("s3")
 
     output = {"HasNewRows": {}, "LastCheckedTime": date_and_time}

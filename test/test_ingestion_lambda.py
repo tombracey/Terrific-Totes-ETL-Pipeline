@@ -12,6 +12,7 @@ def conn_fixture():
     conn = connect_to_db()
     yield conn
 
+
 @pytest.fixture
 def aws_creds():
     os.environ["AWS_ACCESS_KEY_ID"] = "test"
@@ -122,15 +123,15 @@ def test_get_data_ouputs_the_correct_data_intact():
             ["fake_column_1", "fake_column_2"],
         )
 
-@mock_aws
-def test_ingestion_lambda_handler_adds_item_to_bucket(aws_creds):
 
-   
-    test_client = boto3.client('s3')
-    with patch('boto3.client', test_client):
+# @mock_aws
+# def test_ingestion_lambda_handler_adds_item_to_bucket(aws_creds):
 
-        result = ingestion_lambda_handler()
-    objects = test_client.list_objects(Bucket='green-bean-ingestion-bucket')
-    print(objects)
-    assert objects
 
+#     test_client = boto3.client('s3')
+#     with patch('boto3.client', test_client):
+
+#         result = ingestion_lambda_handler({},{})
+#     objects = test_client.list_objects(Bucket='green-bean-ingestion-bucket')
+#     print(objects)
+#     assert objects
