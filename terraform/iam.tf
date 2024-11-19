@@ -133,3 +133,48 @@ resource "aws_iam_role_policy_attachment" "state_machine_policy_attachment" {
 
 
 # FOR FUTURE REFERENCE: we may need to add a policy for monitoring the state machine (either cloudwatch logs or amazon xray)
+
+# SCHEDULER POLICY DOC, IAM ROLE, POLICY AND POLICY ROLE ATTACHMENT
+
+data "aws_iam_policy_document" "scheduler_trust_policy" {
+  statement {
+        effect = "Allow"
+
+        principals {
+          type = "Service"
+          identifiers = ["scheduler.amazonaws.com"]
+        }
+        actions = ["sts:AssumeRole"]
+  }
+}
+
+
+resource "aws_iam_role" "scheduler_role" {
+  name = "scheduler-iam-role-gg-ttotes"
+  assume_role_policy = data.aws_iam_policy_document.scheduler_trust_policy.json
+}
+
+data "aws_iam_policy_document" "scheduler_policy_document" {
+  
+  statement {
+    actions = ["states:StartsExecution"]
+    resources = ["arn:aws:states:*:*:stateMachine:*"]
+  }
+  
+}
+
+resource "aws_iam_policy" "scheduler_policy" {
+  
+  name_prefix = "scheduler-policy-"
+  policy = data.aws_iam_policy_document.scheduler_policy_document.json 
+
+}
+
+resource "aws_iam_role_policy_attachment" "scheduler_policy_attachment" {
+    
+    role = aws_iam_role.scheduler_role.name
+    policy_arn = aws_iam_policy.scheduler_policy.arn
+
+}
+
+
