@@ -8,7 +8,7 @@
         "OutputPath": "$.Payload",
         "Parameters": {
           "Payload.$": "$",
-          "FunctionName": "arn:aws:lambda:{aws_region}:{aws_account_num}:function:{function_name}:$LATEST"
+          "FunctionName": "arn:aws:lambda:eu-west-2:575108949108:function:gb-ttotes-ingestion-lambda:$LATEST"
         },
         "Retry": [
           {

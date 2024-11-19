@@ -18,3 +18,4 @@ terraform/init.sh
 *.tfstate*
 .env
 **pycache**
+packages/*

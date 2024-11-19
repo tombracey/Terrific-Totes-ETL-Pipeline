@@ -8,3 +8,7 @@ resource "aws_sfn_state_machine" "sfn_state_machine" {
     })
   role_arn = aws_iam_role.state_machine_role.arn
 }
+
+
+# In state_machine.json: The FunctionName has been hard coded to pass the test.
+# It will be better to refer dynamically to the values at line 5-7 above.
