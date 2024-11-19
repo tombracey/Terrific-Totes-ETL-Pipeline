@@ -3,14 +3,14 @@ import boto3, os
 
 def json_to_s3(client, json_string, bucket_name, folder, file_name):
 
-    with open(f"{os.getcwd()}/{file_name}", "w", encoding="UTF-8") as file:
+    with open(f"/tmp/{file_name}", "w", encoding="UTF-8") as file:
         file.write(json_string)
 
     client.upload_file(
-        f"{os.getcwd()}/{file_name}", bucket_name, f"{folder}/{file_name}"
+        f"/tmp/{file_name}", bucket_name, f"{folder}/{file_name}"
     )
 
-    os.remove(f"{os.getcwd()}/{file_name}")
+    os.remove(f"/tmp/{file_name}")
 
 
 # (file name for s3 in main function will need date time ingested)

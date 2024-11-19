@@ -70,20 +70,21 @@ def format_to_json(list_of_dicts):
 # JSON TO s3
 def json_to_s3(client, json_string, bucket_name, folder, file_name):
 
-    with open(f"{os.getcwd()}/{file_name}", "w", encoding="UTF-8") as file:
+    with open(f"/tmp/{file_name}", "w", encoding="UTF-8") as file:
         file.write(json_string)
 
     client.upload_file(
-        f"{os.getcwd()}/{file_name}", bucket_name, f"{folder}/{file_name}"
+        f"/tmp/{file_name}", bucket_name, f"{folder}/{file_name}"
     )
 
-    os.remove(f"{os.getcwd()}/{file_name}")
+    os.remove(f"/tmp/{file_name}")
+
 # CONNECTION
 def connect_to_db():
     sm_client = boto3.client("secretsmanager", "eu-west-2")
     credentials = retrieve_secret(sm_client, "gb-ttotes/totesys-oltp-credentials")
 
-    return pg8000.native.Connection(
+    return Connection(
         user=credentials["PG_USER"],
         password=credentials["PG_PASSWORD"],
         database=credentials["PG_DATABASE"],
@@ -107,22 +108,24 @@ def store_secret(sm_client, secret_id, keys_and_values):
 
 # LAMBDA HANDLER
 def ingestion_lambda_handler(event, context):
+    last_update_name = "gb-ttotes/last-update"
+    
     db = connect_to_db()
     sm_client = boto3.client('secretsmanager')
     secret_request = sm_client.list_secrets()
     list_of_secrets = secret_request['SecretList']
     secret_names = [secret['Name'] for secret in list_of_secrets]
     
-    if 'last_update' not in secret_names:
+    if last_update_name not in secret_names:
         date_and_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
         last_update = (datetime.datetime(2020, 1, 1, 00, 00, 00, 000000)).strftime(
         "%Y-%m-%d %H:%M:%S.%f")
-        store_secret(sm_client, 'last_update', ['last_update', date_and_time])
+        store_secret(sm_client, last_update_name, [last_update_name, date_and_time])
     else:
-        last_updated_secret = retrieve_secret(sm_client, 'last_update')
-        last_update = last_updated_secret['last_update']
+        last_updated_secret = retrieve_secret(sm_client, last_update_name)
+        last_update = last_updated_secret[last_update_name]
         date_and_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-        update_secret(sm_client, 'last_update', ['last_update', date_and_time])
+        update_secret(sm_client, last_update_name, [last_update_name, date_and_time])
     
     data = get_data(db, last_update)
     s3_client = boto3.client('s3')
