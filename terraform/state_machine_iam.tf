@@ -27,7 +27,7 @@ data "aws_iam_policy_document" "state_machine_role_policy" {
       "lambda:InvokeFunction"
     ]
 
-    resources = ["${state_machine_var.ingestion_lambda_name.arn}:*"]
+    resources = ["${var.ingestion_lambda_name.arn}:*"]
   }
   
 }

@@ -1,6 +1,6 @@
 
 resource "aws_sfn_state_machine" "sfn_state_machine" {
-  name_prefix = "state_machine_var.state_machine_name"
+  name_prefix = "var.state_machine_name"
   definition = templatefile("${path.module}/statemachine/state_machine.json",
     { aws_region        = data.aws_region.current.name,
       aws_account_num   = data.aws_caller_identity.current.account_id,
