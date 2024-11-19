@@ -4,12 +4,35 @@ import boto3
 import os
 from pg8000.native import Connection, identifier
 from dotenv import load_dotenv
+import logging
 
-BUCKET_NAME = os.environ["INGESTION_BUCKET_NAME"]
 
+
+from collections.abc import Mapping, Iterable
+from decimal import Decimal, Context, MAX_PREC
+
+# _context = Context(prec=MAX_PREC)  # optional, to handle more than the default 28 digits, if necessary
+
+class DecimalEncoder(json.JSONEncoder):
+    def encode(self, obj):
+        if isinstance(obj, Mapping):
+            return '{' + ', '.join(f'{self.encode(k)}: {self.encode(v)}' for (k, v) in obj.items()) + '}'
+        if isinstance(obj, Iterable) and (not isinstance(obj, str)):
+            return '[' + ', '.join(map(self.encode, obj)) + ']'
+        if isinstance(obj, Decimal):
+            # (the _context is optional, for handling more than 28 digits)
+            return f'{obj.normalize():f}'  # using normalize() gets rid of trailing 0s, using ':f' prevents scientific notation
+        return super().encode(obj)
+
+
+# BUCKET_NAME = os.environ["INGESTION_BUCKET_NAME"]
+logger = logging.getLogger("logger")
+logger.setLevel(logging.INFO)
+logger.info(json.dumps({"key": Decimal("1.21")}, cls=DecimalEncoder))
 # RETRIEVE SECRET UTIL
 
 def retrieve_secret(sm_client, secret_id):
+    logger.info(f"retrieving secret {secret_id}")
     secret_json = sm_client.get_secret_value(SecretId=secret_id)["SecretString"]
     secret_value = json.loads(secret_json)
     return secret_value
@@ -17,6 +40,7 @@ def retrieve_secret(sm_client, secret_id):
 # UPDATE SECRET
 
 def update_secret(sm_client, secret_id, keys_and_values):
+    logger.info(f"updating secret {secret_id}")
     if isinstance(keys_and_values[0], list):
         key_value_dict = {}
         for key_value_pair in keys_and_values:
@@ -37,7 +61,7 @@ def get_data(db, last_update):
     tables = ['counterparty', 'currency', 'department', 'design', 'staff', 'sales_order', 'address', 'payment', 'purchase_order', 'payment_type', 'transaction']
 
     for table in tables:
-
+        logger.info(f"querying table {table}, with last update {last_update}")
         query = db.run(f"SELECT * FROM {identifier(table)} WHERE last_updated >= :last_update;", last_update=last_update)
         data[table] = (query, [col["name"] for col in db.columns])
 
@@ -56,7 +80,6 @@ def datetime_to_strftime(row):
 # ZIP DICTIONARY
 
 def zip_dictionary(new_rows, columns):
-    
     zipped_dict = [dict(zip(columns, row)) for row in new_rows]
     
     return zipped_dict
@@ -64,7 +87,7 @@ def zip_dictionary(new_rows, columns):
 # FORMAT TO JSON
 
 def format_to_json(list_of_dicts):
-    formatted_data = json.dumps(list_of_dicts)
+    formatted_data = json.dumps(list_of_dicts, cls=DecimalEncoder)
     return formatted_data
 
 # JSON TO s3
@@ -115,17 +138,18 @@ def ingestion_lambda_handler(event, context):
     secret_request = sm_client.list_secrets()
     list_of_secrets = secret_request['SecretList']
     secret_names = [secret['Name'] for secret in list_of_secrets]
+    last_update_secret_id = f"gb-ttotes/last-update-{BUCKET_NAME}"
     
-    if last_update_name not in secret_names:
+    if last_update_secret_id not in secret_names:
         date_and_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
         last_update = (datetime.datetime(2020, 1, 1, 00, 00, 00, 000000)).strftime(
         "%Y-%m-%d %H:%M:%S.%f")
-        store_secret(sm_client, last_update_name, [last_update_name, date_and_time])
+        store_secret(sm_client, last_update_secret_id, ['last_update', date_and_time])
     else:
-        last_updated_secret = retrieve_secret(sm_client, last_update_name)
-        last_update = last_updated_secret[last_update_name]
+        last_updated_secret = retrieve_secret(sm_client, last_update_secret_id)
+        last_update = last_updated_secret['last_update']
         date_and_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-        update_secret(sm_client, last_update_name, [last_update_name, date_and_time])
+        update_secret(sm_client, last_update_secret_id, ['last_update', date_and_time])
     
     data = get_data(db, last_update)
     s3_client = boto3.client('s3')
@@ -133,14 +157,16 @@ def ingestion_lambda_handler(event, context):
     for table in data:
         rows = data[table][0]
         columns = data[table][1]
-        new_rows = []
-        for row in rows:
-            new_rows.append(datetime_to_strftime(row))
-        zipped_dict = zip_dictionary(new_rows, columns)
-        json_data = format_to_json(zipped_dict)
-        file_name = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-        folder_name = table
-        json_to_s3(s3_client, json_data, BUCKET_NAME, folder_name, file_name)
+        
+        if len(rows) > 0:
+            new_rows = [datetime_to_strftime(row) for row in rows]
+            logger.info(f"zipping table {table} to dictionary")
+            zipped_dict = zip_dictionary(new_rows, columns)
+            json_data = format_to_json(zipped_dict)
+            file_name = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+            folder_name = table
+            logger.info(f"saving table {table} to file")
+            json_to_s3(s3_client, json_data, BUCKET_NAME, folder_name, file_name)
 
 if __name__ == "__main__":
     ingestion_lambda_handler({}, {})
