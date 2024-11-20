@@ -168,7 +168,7 @@ def ingestion_lambda_handler(event, context):
 
     db = connect_to_db()
     sm_client = boto3.client("secretsmanager")
-    secret_request = sm_client.list_secrets()
+    secret_request = sm_client.list_secrets(MaxResults=99, IncludePlannedDeletion=False)
     list_of_secrets = secret_request["SecretList"]
     secret_names = [secret["Name"] for secret in list_of_secrets]
     last_update_secret_id = f"gb-ttotes/last-update-{BUCKET_NAME}"
