@@ -42,3 +42,8 @@ variable "ingestion_lambda_filename" {
   type = string
   default = "ingestion_lambda"
 }
+
+variable "state_machine_name" {
+    type = string
+    default = "gb-ttotes-state-machine"
+}
