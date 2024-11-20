@@ -9,3 +9,4 @@ Dim_Location Columns in Order
 - country (VARCHAR) NOT NULL (from address.country)
 - phone (VARCHAR) NOT NULL (from address.phone)
 
+ALL COLUMNS FROM ADDRESS TABLE
