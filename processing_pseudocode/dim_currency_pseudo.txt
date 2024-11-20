@@ -1,0 +1,7 @@
+dim_currency column order:
+
+    - currency_id INT no changes
+    - currency_code VARCHAR no changes
+    - currency_name VARCHAR  (NEW COLUMN!)
+
+NO OTHER TABLES REFERENCED
