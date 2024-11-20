@@ -1,3 +1,5 @@
+## INGESTION LAMBDA ## 
+
 # LAMBDA POLICY AND ROLE
 data "aws_iam_policy_document" "trust_policy" {
   statement {
@@ -96,3 +98,61 @@ resource "aws_iam_role_policy_attachment" "lambda_cloudwatch_logs_policy_attachm
 
 
 
+########################################################################## 
+
+## STATE MACHINE ##
+
+
+# STATE MACHINE POLICY AND ROLE
+
+data "aws_iam_policy_document" "state_machine_trust_policy" {
+  statement {
+        effect = "Allow"
+
+        principals {
+          type = "Service"
+          identifiers = ["states.amazonaws.com"]
+        }
+        actions = ["sts:AssumeRole"]
+  }
+}
+
+resource "aws_iam_role" "state_machine_role" {
+    name_prefix = "role-${var.state_machine_name}"
+    assume_role_policy = data.aws_iam_policy_document.state_machine_trust_policy.json
+}    
+
+
+# STATE MACHINE POLICY AND ATTACHMENT TO STATE MACHINE ROLE
+
+data "aws_iam_policy_document" "state_machine_policy_document" {
+  
+  statement {
+    actions = ["lambda:InvokeFunction"]
+    resources = ["arn:aws:lambda:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:function:${var.ingestion_lambda_name}"]
+  }
+  
+  statement {
+    actions = ["lambda:InvokeFunction"]
+    resources = ["arn:aws:lambda:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:function:${var.ingestion_lambda_name}:*"]
+  }
+}
+
+
+resource "aws_iam_policy" "state_machine_policy" {
+  
+  name_prefix = "state-machine-police-${var.state_machine_name}"
+  policy = data.aws_iam_policy_document.state_machine_policy_document.json 
+
+}
+
+
+resource "aws_iam_role_policy_attachment" "state_machine_policy_attachment" {
+    
+    role = aws_iam_role.state_machine_role.name
+    policy_arn = aws_iam_policy.state_machine_policy.arn
+
+}
+
+
+# FOR FUTURE REFERENCE: we may need to add a policy for monitoring the state machine (either cloudwatch logs or amazon xray)

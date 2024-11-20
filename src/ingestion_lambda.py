@@ -31,6 +31,11 @@ class DecimalEncoder(json.JSONEncoder):
         return super().encode(obj)
 
 
+
+logger = logging.getLogger("logger")
+logger.setLevel(logging.INFO)
+
+
 # RETRIEVE SECRET UTIL
 def retrieve_secret(sm_client, secret_id):
     logger.info(f"retrieving secret {secret_id}")
@@ -156,7 +161,7 @@ def ingestion_lambda_handler(event, context):
     BUCKET_NAME = os.environ["INGESTION_BUCKET_NAME"]
 
     sm_client = boto3.client("secretsmanager")
-    secret_request = sm_client.list_secrets()
+    secret_request = sm_client.list_secrets(MaxResults=99, IncludePlannedDeletion=False)
     list_of_secrets = secret_request["SecretList"]
     secret_names = [secret["Name"] for secret in list_of_secrets]
     last_update_secret_id = f"gb-ttotes/last-update-{BUCKET_NAME}"
