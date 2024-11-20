@@ -1,6 +1,7 @@
-from src.secret_utils import store_secret, retrieve_secret
+from src.secret_utils import store_secret, retrieve_secret, update_secret
 import pytest, boto3, os
 from moto import mock_aws
+import json
 
 
 @pytest.fixture(autouse=True, scope="class")
@@ -80,3 +81,22 @@ class TestSecretUtils:
         output = retrieve_secret(sm_client, "your_secret")
         assert output["user"] == "keen_green_bean_3"
         assert output["password"] == "pa55word"
+
+
+    @mock_aws
+    def test_update_secret_updates_keys_and_values_correctly(self, sm_client):
+        store_secret(
+            sm_client,
+            "my_secret",
+            [["user", "keen_green_bean_1"], ["password", "pa55word"]]
+        )
+        update_secret(sm_client,
+            "my_secret",
+            [["user", "keen_green_bean_2"], ["password", "pa55word2"]])
+        test_secret_json = sm_client.get_secret_value(SecretId='my_secret')["SecretString"]
+        test_secret_value = json.loads(test_secret_json)
+        
+        assert test_secret_value["user"] == "keen_green_bean_2"
+        assert test_secret_value["password"] == "pa55word2"
+
+        
