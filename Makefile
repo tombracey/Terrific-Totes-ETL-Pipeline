@@ -76,7 +76,7 @@ run-black:
 
 ## Run terraform formatting check
 terraform-fmt:
-	$(call execute_in_env, terraform fmt -diff ./terraform/)
+	$(call execute_in_env, terraform fmt ./terraform/)
 
 ## Run the unit tests
 unit-test:
