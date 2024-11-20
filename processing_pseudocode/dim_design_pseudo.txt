@@ -1,0 +1,8 @@
+dim_design table column order:
+
+ - design_id INT No changes
+ - design_name VARCHAR no changes
+ - file_location VARCHAR no changes
+ - file_name VARCHAR no changes
+ 
+ NO OTHER TABLES REFERENCED
