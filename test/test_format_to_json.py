@@ -26,6 +26,7 @@ def test_list_of_dicts_including_datetime():
     output = format_to_json(test_input)
     assert current_time in output
 
+
 def test_list_of_dicts_including_decimal():
     test_input = [{"a": 1, "b": 2, "c": Decimal("1.23")}]
     output = format_to_json(test_input)
