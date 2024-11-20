@@ -31,7 +31,6 @@ class DecimalEncoder(json.JSONEncoder):
         return super().encode(obj)
 
 
-BUCKET_NAME = os.environ["INGESTION_BUCKET_NAME"]
 logger = logging.getLogger("logger")
 logger.setLevel(logging.INFO)
 
@@ -165,7 +164,7 @@ def store_secret(sm_client, secret_id, keys_and_values):
 
 # LAMBDA HANDLER
 def ingestion_lambda_handler(event, context):
-    last_update_name = "gb-ttotes/last-update"
+    BUCKET_NAME = os.environ["INGESTION_BUCKET_NAME"]
 
     db = connect_to_db()
     sm_client = boto3.client("secretsmanager")
