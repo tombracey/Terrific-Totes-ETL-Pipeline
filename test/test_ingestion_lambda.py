@@ -1,5 +1,4 @@
 from src.ingestion_lambda import *
-from src.connection import connect_to_db, close_connection
 from unittest.mock import Mock, patch
 import datetime
 import pytest
