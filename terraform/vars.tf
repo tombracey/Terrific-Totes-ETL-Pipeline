@@ -23,6 +23,11 @@ variable "ingestion_bucket_prefix" {
     default = "green-bean-ingestion-bucket-"
 }
 
+variable "processing_bucket_prefix" {
+    type = string
+    default = "green-bean-processing-bucket-"
+}
+
 variable "error_tag" {
   type = string
   default = "ERROR"
