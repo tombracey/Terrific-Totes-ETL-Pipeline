@@ -22,24 +22,68 @@ def s3_client(aws_credentials):
 
 @pytest.fixture
 def s3_bucket(s3_client):
-    s3_client.create_bucket(Bucket="test_bucket")
+    s3_client.create_bucket(
+        Bucket="test_bucket",
+        CreateBucketConfiguration={
+            "LocationConstraint": "eu-west-2"
+        }
+    )
     yield s3_client
 
 
-@mock_aws
-def test_empty_bucket_returns_empty_dataframe():
-    pass
-
-
-@mock_aws
-def test_single_file_with_correct_id_returns_expect_single_row_dataframe(s3_bucket):
+def test_single_file_with_correct_id_returns_expected_single_row_dataframe(s3_bucket):
     s3_bucket.upload_file(
         Bucket="test_bucket",
         Filename="test/test_data/sales_order/2024-11-21 13_32_38.364280.json",
         Key="sales_order/2024-11-21 13_32_38.364280.json"
     )
-    output_df = fetch_latest_row_versions("sales_order", [11283])
+    output_df = fetch_latest_row_versions(s3_bucket, "test_bucket", "sales_order", [11283])
     assert isinstance(output_df, pd.DataFrame)
     assert len(output_df.index) == 1
     assert output_df.loc[0, "sales_order_id"] == 11283
-    assert type(output_df.loc[0, "created_at"]) == timestamp ## .dtype()?
+    assert output_df.loc[0, "created_at"] == "2024-11-21 13:21:09.941000"
+    assert output_df.loc[0, "last_updated"] == "2024-11-21 13:21:09.941000"
+    assert output_df.loc[0, "design_id"] == 349
+    assert output_df.loc[0, "staff_id"] == 1
+    assert output_df.loc[0, "counterparty_id"] == 5
+    assert output_df.loc[0, "units_sold"] == 1842
+    assert output_df.loc[0, "unit_price"] == 2.29
+    assert output_df.loc[0, "currency_id"] == 2
+    assert output_df.loc[0, "agreed_delivery_date"] == "2024-11-26"
+    assert output_df.loc[0, "agreed_payment_date"] == "2024-11-25"
+    assert output_df.loc[0, "agreed_delivery_location_id"] == 15
+
+
+def test_seeking_one_id_in_multiple_matching_files_returns_expected_single_row_dataframe(s3_bucket):
+    s3_bucket.upload_file(
+        Bucket="test_bucket",
+        Filename="test/test_data/sales_order/2024-11-21 15_47_38.454675.json",
+        Key="sales_order/2024-11-21 15_47_38.454675.json"
+    )
+    s3_bucket.upload_file(
+        Bucket="test_bucket",
+        Filename="test/test_data/sales_order/2024-11-21 13_32_38.364280.json",
+        Key="sales_order/2024-11-21 13_32_38.364280.json"
+    )
+    s3_bucket.upload_file(
+        Bucket="test_bucket",
+        Filename="test/test_data/sales_order/2024-11-21 16_02_38.340563.json",
+        Key="sales_order/2024-11-21 16_02_38.340563.json"
+    )
+
+    output_df = fetch_latest_row_versions(s3_bucket, "test_bucket", "sales_order", [11283])
+
+    assert isinstance(output_df, pd.DataFrame)
+    assert len(output_df.index) == 1
+    assert output_df.loc[0, "sales_order_id"] == 11283
+    assert output_df.loc[0, "created_at"] == "2024-11-21 15:54:09.995000"
+    assert output_df.loc[0, "last_updated"] == "2024-11-21 15:54:09.995000"
+    assert output_df.loc[0, "design_id"] == 78
+    assert output_df.loc[0, "staff_id"] == 8
+    assert output_df.loc[0, "counterparty_id"] == 18
+    assert output_df.loc[0, "units_sold"] == 53443
+    assert output_df.loc[0, "unit_price"] == 2.54
+    assert output_df.loc[0, "currency_id"] == 2
+    assert output_df.loc[0, "agreed_delivery_date"] == "2024-11-22"
+    assert output_df.loc[0, "agreed_payment_date"] == "2024-11-25"
+    assert output_df.loc[0, "agreed_delivery_location_id"] == 8
