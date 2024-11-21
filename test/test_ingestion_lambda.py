@@ -12,6 +12,7 @@ def conn_fixture():
     conn = connect_to_db()
     yield conn
 
+
 @pytest.fixture
 def aws_creds():
     os.environ["AWS_ACCESS_KEY_ID"] = "test"
