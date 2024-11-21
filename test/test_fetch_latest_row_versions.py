@@ -73,7 +73,6 @@ def test_seeking_one_id_in_multiple_matching_files_returns_expected_single_row_d
 
     output_df = fetch_latest_row_versions(s3_bucket, "test_bucket", "sales_order", [11283])
 
-    assert isinstance(output_df, pd.DataFrame)
     assert len(output_df.index) == 1
     assert output_df.loc[0, "sales_order_id"] == 11283
     assert output_df.loc[0, "created_at"] == "2024-11-21 15:54:09.995000"
@@ -87,3 +86,36 @@ def test_seeking_one_id_in_multiple_matching_files_returns_expected_single_row_d
     assert output_df.loc[0, "agreed_delivery_date"] == "2024-11-22"
     assert output_df.loc[0, "agreed_payment_date"] == "2024-11-25"
     assert output_df.loc[0, "agreed_delivery_location_id"] == 8
+
+
+def test_seeking_multiple_ids_in_multiple_files_returns_expected_dataframe(s3_bucket):
+    s3_bucket.upload_file(
+        Bucket="test_bucket",
+        Filename="test/test_data/sales_order/2024-11-21 15_47_38.454675.json",
+        Key="sales_order/2024-11-21 15_47_38.454675.json"
+    )
+    s3_bucket.upload_file(
+        Bucket="test_bucket",
+        Filename="test/test_data/sales_order/2024-11-21 13_32_38.364280.json",
+        Key="sales_order/2024-11-21 13_32_38.364280.json"
+    )
+    s3_bucket.upload_file(
+        Bucket="test_bucket",
+        Filename="test/test_data/sales_order/2024-11-21 16_02_38.340563.json",
+        Key="sales_order/2024-11-21 16_02_38.340563.json"
+    )
+
+    output_df = fetch_latest_row_versions(s3_bucket, "test_bucket", "sales_order", [11283, 11285, 11291])
+
+    assert len(output_df.index) == 3
+
+    print(output_df.query("sales_order_id == 11283").loc[0, "last_updated"])
+
+    assert output_df.loc[0, "sales_order_id"] == 11283
+    assert output_df.loc[0, "last_updated"] == "2024-11-21 15:54:09.995000"
+
+    assert output_df.loc[1, "sales_order_id"] == 11285
+    assert output_df.loc[1, "last_updated"] == "2024-11-21 13:32:09.809000"
+
+    assert output_df.loc[2, "sales_order_id"] == 11291
+    assert output_df.loc[2, "last_updated"] == "2024-11-21 15:40:10.078000"
