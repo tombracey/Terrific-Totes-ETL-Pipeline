@@ -18,6 +18,9 @@ resource "aws_s3_object" "ingestion_lambda_code" {
   etag = filemd5(data.archive_file.ingestion_lambda_zip.output_path)
 }
 
+resource "aws_s3_bucket" "processing_bucket" {
+    bucket_prefix = var.processing_bucket_prefix
+}
 
 resource "aws_s3_object" "lambda_layer" {
   bucket = aws_s3_bucket.code_bucket.id

@@ -51,6 +51,14 @@ data "aws_iam_policy_document" "s3_data_policy_doc" {
     resources = ["${aws_s3_bucket.ingestion_bucket.arn}/*"]
   }
 }
+
+data "aws_iam_policy_document" "s3_data_policy_doc_2" {
+  statement {
+    actions = ["s3:PutObject"]
+    resources = ["${aws_s3_bucket.processing_bucket.arn}/*"]
+  }
+}
+
 # we have given permission to write into any s3 bucket, 
 
 resource "aws_iam_policy" "s3_write_policy" {
