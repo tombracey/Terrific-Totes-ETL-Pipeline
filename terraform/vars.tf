@@ -1,16 +1,16 @@
 variable "state_bucket_name" {
-    type = string
-    default = "gb-ttotes-remote-state-bucket"
+  type    = string
+  default = "gb-ttotes-remote-state-bucket"
 }
 
 variable "ingestion_lambda_name" {
-    type = string
-    default = "gb-ttotes-ingestion-lambda"
+  type    = string
+  default = "gb-ttotes-ingestion-lambda"
 }
 
 variable "code_bucket_prefix" {
-    type = string
-    default = "code-bucket-"
+  type    = string
+  default = "code-bucket-"
 }
 
 variable "python_runtime" {
@@ -19,8 +19,8 @@ variable "python_runtime" {
 }
 
 variable "ingestion_bucket_prefix" {
-    type = string
-    default = "green-bean-ingestion-bucket-"
+  type    = string
+  default = "green-bean-ingestion-bucket-"
 }
 
 variable "processing_bucket_prefix" {
@@ -29,31 +29,41 @@ variable "processing_bucket_prefix" {
 }
 
 variable "error_tag" {
-  type = string
+  type    = string
   default = "ERROR"
 }
 
 variable "metric_transformation_name" {
-  type = string
+  type    = string
   default = "PublishValue1"
 }
 
 variable "ingestion_metric_namespace" {
-  type = string
+  type    = string
   default = "lambda-ingestion-function"
 }
 
 variable "ingestion_lambda_filename" {
-  type = string
+  type    = string
   default = "ingestion_lambda"
 }
 
+variable "processing_lambda_filename" {
+  type = string
+  default = "processing_lambda"
+}
+
 variable "state_machine_name" {
-    type = string
-    default = "gb-ttotes-state-machine"
+  type    = string
+  default = "gb-ttotes-state-machine"
 }
 
 variable "scheduler_name" {
+  type    = string
+  default = "gb-ttotes-etl-scheduler"
+}
+
+variable "processing_lambda_name" {
   type = string
-  default = "gb_ttotes_etl_scheduler"
+  default = "gb-ttotes-processing-lambda"
 }
