@@ -1,4 +1,5 @@
 from src.ingestion_lambda import *
+from unittest import TestCase
 from unittest.mock import Mock, patch
 import datetime
 import pytest
@@ -120,4 +121,20 @@ def test_get_data_ouputs_the_correct_data_intact():
         assert mocked_output[table] == (
             dummy_counterparty_table,
             ["fake_column_1", "fake_column_2"],
+        )
+
+
+def test_ingestion_lambda_handler_logs_errors():
+
+    with TestCase.assertLogs("logger", level="ERROR") as log:
+        ingestion_lambda_handler({}, {})
+
+        # assert (
+        #     log.output[0]
+        #     == "ERROR:logger:{'Error found': 'Test error'}"
+        # )
+
+        assert (
+            log.output[0]
+            == "ERROR:logger:{'Error found': KeyError('INGESTION_BUCKET_NAME')}"
         )
