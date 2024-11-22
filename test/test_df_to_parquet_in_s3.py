@@ -1,6 +1,6 @@
 from src.utils.df_to_parquet_in_s3 import df_to_parquet_in_s3
 from moto import mock_aws
-import pytest, os, boto3
+import pytest, os, boto3, pyarrow, io
 import pandas as pd
 
 
@@ -36,12 +36,17 @@ def test_df_to_parquet_and_uploads_to_s3(s3_client):
     df_to_parquet_in_s3(s3_client, test_df,'test-bucket', test_folder, test_file_name)
     object = s3_client.list_objects(Bucket="test-bucket")
 
-    assert object["Contents"][0]["Key"] == f"{test_folder}/{test_file_name}"
+    assert object["Contents"][0]["Key"] == f"{test_folder}/{test_file_name}.parquet"
 
     response = s3_client.get_object(
-        Bucket="test-bucket", Key=f"{test_folder}/{test_file_name}"
+        Bucket="test-bucket", Key=f"{test_folder}/{test_file_name}.parquet"
     )
-    print(pd.read_parquet(response["Body"].read()))
+    
+    # print(response['Body'])
+
+    buff = io.BytesIO(response['Body'].read())
+    df = pd.read_parquet(buff)
+    assert isinstance(df, pd.DataFrame)
 
 
 
