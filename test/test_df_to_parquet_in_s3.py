@@ -29,11 +29,11 @@ def test_df_to_parquet_and_uploads_to_s3(s3_client):
         },
     )
     test_json = '[{"currency_id": 1, "currency_code": "GBP", "created_at": "2022-11-03 14:20:49.962000", "last_updated": "2022-11-03 14:20:49.962000"}, {"currency_id": 2, "currency_code": "USD", "created_at": "2022-11-03 14:20:49.962000", "last_updated": "2022-11-03 14:20:49.962000"}, {"currency_id": 3, "currency_code": "EUR", "created_at": "2022-11-03 14:20:49.962000", "last_updated": "2022-11-03 14:20:49.962000"}]'
-    
+
     test_df = pd.read_json(test_json)
     test_folder = "test-folder"
     test_file_name = "test-file-name"
-    df_to_parquet_in_s3(s3_client, test_df,'test-bucket', test_folder, test_file_name)
+    df_to_parquet_in_s3(s3_client, test_df, "test-bucket", test_folder, test_file_name)
     object = s3_client.list_objects(Bucket="test-bucket")
 
     assert object["Contents"][0]["Key"] == f"{test_folder}/{test_file_name}.parquet"
@@ -42,15 +42,6 @@ def test_df_to_parquet_and_uploads_to_s3(s3_client):
         Bucket="test-bucket", Key=f"{test_folder}/{test_file_name}.parquet"
     )
 
-    buff = io.BytesIO(response['Body'].read())
+    buff = io.BytesIO(response["Body"].read())
     df = pd.read_parquet(buff)
     assert isinstance(df, pd.DataFrame)
-
-
-
-
-
-
-
-
-
