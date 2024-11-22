@@ -41,8 +41,6 @@ def test_df_to_parquet_and_uploads_to_s3(s3_client):
     response = s3_client.get_object(
         Bucket="test-bucket", Key=f"{test_folder}/{test_file_name}.parquet"
     )
-    
-    # print(response['Body'])
 
     buff = io.BytesIO(response['Body'].read())
     df = pd.read_parquet(buff)
