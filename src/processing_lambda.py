@@ -5,12 +5,26 @@ import os
 import json
 from babel.numbers import get_currency_name
 # temporary includes:
-from utils.fetch_latest_row_versions import fetch_latest_row_versions
+from src.utils.fetch_latest_row_versions import fetch_latest_row_versions
 
 
 
 logger = logging.getLogger("logger")
 logger.setLevel(logging.INFO)
+
+
+def make_exclusion_list(s3_client, bucket_name, table_name, last_checked_time):
+    josn_object = s3_client.get_object(
+        Bucket=bucket_name,
+        Key=f"{table_name}/{last_checked_time}.json"
+    )
+    json_string = josn_object['Body'].read().decode("utf-8")
+
+    updated_rows = json.loads(json_string)
+
+    return [row[f"{table_name}_id"] for row in updated_rows]
+
+
 
 
 def processing_lambda_handler(event, context):
@@ -26,14 +40,14 @@ def processing_lambda_handler(event, context):
         json_string = s3_client.get_object(
             Bucket=INGESTION_BUCKET_NAME, 
             Key=file_name
-            )['Body'].read().decode('utf-8')
+        )['Body'].read().decode('utf-8')
         counterparty_df = pd.DataFrame.from_dict(json.loads(json_string))
         
         address_ids_to_fetch = counterparty_df['legal_address_id'].tolist()
         addresses_df = fetch_latest_row_versions(s3_client, INGESTION_BUCKET_NAME, 'address', address_ids_to_fetch)
         dim_counterparty_df = pd.merge(
-            counterparty_df, addresses_df, how='left', left_on='legal_address_id', right_on='address_id')
-        pd.set_option('display.max_colwidth', None)
+            counterparty_df, addresses_df, how='left',
+            left_on='legal_address_id', right_on='address_id')
         dim_counterparty_df = dim_counterparty_df.drop(columns=[
             'legal_address_id', 
             'commercial_contact', 
@@ -74,21 +88,55 @@ def processing_lambda_handler(event, context):
             Key=file_name
             )['Body'].read().decode('utf-8')
         design_df = pd.DataFrame.from_dict(json.loads(json_string))
-        print(design_df)
         dim_design_df = design_df.drop(columns=['last_updated',
                                                      'created_at'])
         
         # Save to parquet file here
     
-    if has_new_rows[]
+    if has_new_rows['staff']:
+        file_name = f'staff/{last_checked_time}.json'
+        json_string = s3_client.get_object(
+            Bucket=INGESTION_BUCKET_NAME, 
+            Key=file_name
+            )['Body'].read().decode('utf-8')
+        staff_df = pd.DataFrame.from_dict(json.loads(json_string))
 
-        
-        
+        department_ids_to_fetch = staff_df['department_id'].tolist()
+        departments_df = fetch_latest_row_versions(
+            s3_client, INGESTION_BUCKET_NAME,
+            'department', department_ids_to_fetch)
+        dim_staff_df = pd.merge(
+            staff_df, departments_df,
+            how='left', on='department_id')
+        dim_staff_df = dim_staff_df.drop(columns=[
+            'department_id', 
+            'created_at_x', 
+            'last_updated_x', 
+            'manager', 
+            'created_at_y', 
+            'last_updated_y'])
+        dim_staff_df = dim_staff_df[[
+            "staff_id",
+            "first_name",
+            "last_name",
+            "department_name",
+            "location",
+            "email_address"
+        ]]
+        dim_staff_df['location'] = dim_staff_df['location'].fillna("Undefined")
 
-        
-        
-        # get_currency_name('GBP')
-        
+        # Save to parquet file here
+
+    if has_new_rows['department']:
+        pass
+
+    # if has_new_rows['address']:
+    #     file_name = f'address/{last_checked_time}.json'
+    #     json_string = s3_client.get_object(
+    #         Bucket=INGESTION_BUCKET_NAME, 
+    #         Key=file_name
+    #         )['Body'].read().decode('utf-8')
+    #     address_df = pd.DataFrame.from_dict(json.loads(json_string))        
 
 
 
@@ -97,5 +145,18 @@ def processing_lambda_handler(event, context):
 
 
 if __name__ == '__main__':
-    test_event = {'HasNewRows': {'counterparty': False, 'currency': False, 'department': False, 'design': True, 'staff': False, 'sales_order': False, 'address': False, 'payment': False, 'purchase_order': False, 'payment_type': False, 'transaction': False}, 'LastCheckedTime': '2024-11-20 15:22:10.531518'}
+    test_event = {
+        'HasNewRows': {
+            'counterparty': False, 
+            'currency': False, 
+            'department': False, 
+            'design': False, 
+            'staff': True, 
+            'sales_order': False, 
+            'address': False, 
+            'payment': False, 
+            'purchase_order': False, 
+            'payment_type': False, 
+            'transaction': False}, 
+        'LastCheckedTime': '2024-11-20 15:22:10.531518'}
     processing_lambda_handler(test_event, {})
