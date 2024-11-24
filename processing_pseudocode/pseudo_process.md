@@ -41,6 +41,7 @@ iterate over HasNewRows
 -----> delete created_at and last_updated columns
 -----> write to parquet in dim_location folder with last-checked time as name
 
+# note: might be clearer to call 'exclusion list' 'already-updated list'
 -----> get list of counterparty_ids included in latest update and add to exclusion list
 -----> get list of s3 objects in counterparty folder of ingestion bucket
 -----> iterate over them from newest to oldest, ignoring ids on exclusion list

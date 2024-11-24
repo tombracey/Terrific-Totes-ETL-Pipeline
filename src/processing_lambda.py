@@ -4,9 +4,9 @@ import pandas as pd
 import os
 import json
 from babel.numbers import get_currency_name
+
 # temporary includes:
 from src.utils.fetch_latest_row_versions import fetch_latest_row_versions
-
 
 
 logger = logging.getLogger("logger")
@@ -14,11 +14,11 @@ logger.setLevel(logging.INFO)
 
 
 def make_exclusion_list(s3_client, bucket_name, table_name, last_checked_time):
-    josn_object = s3_client.get_object(
+    json_object = s3_client.get_object(
         Bucket=bucket_name,
         Key=f"{table_name}/{last_checked_time}.json"
     )
-    json_string = josn_object['Body'].read().decode("utf-8")
+    json_string = json_object['Body'].read().decode("utf-8")
 
     updated_rows = json.loads(json_string)
 
