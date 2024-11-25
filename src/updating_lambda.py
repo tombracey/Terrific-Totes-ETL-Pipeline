@@ -20,12 +20,31 @@ def connect_to_db():
     credentials = retrieve_secret(sm_client, "gb-ttotes/postgres-olap-credentials")
 
     return Connection(
-        user=credentials["PG_USER"],
-        password=credentials["PG_PASSWORD"],
-        database=credentials["PG_DATABASE"],
-        host=credentials["PG_HOST"],
-        port=credentials["PG_PORT"],
+        user=credentials["DW_USER"],
+        password=credentials["DW_PASSWORD"],
+        database=credentials["DW_DATABASE"],
+        host=credentials["DW_HOST"],
+        port=credentials["DW_PORT"],
     )
+
+# PARQUET TO DF
+def read_parquet_from_s3(s3_client,BUCKET_NAME,file_key):
+    response = s3_client.get_object(
+            Bucket=BUCKET_NAME, Key=file_key
+        )
+    buffer = io.BytesIO(response["Body"].read())
+    df = pd.read_parquet(buffer)
+    return df
+
+# INSTERT INTO DW
+def insert_into_dw(df,db):
+    insert_statement = """
+        INSERT INTO dim_currency (currency_id, currency_code, currency_name)
+        VALUES (%s, %s, %s)
+        """
+    for row in df.itertuples(index=False, name=None):
+        db.run(insert_statement, row)
+
 
 # LAMBDA HANDLER
 def updating_lambda_handler(event, context):
@@ -44,3 +63,9 @@ def updating_lambda_handler(event, context):
         buffer = io.BytesIO(response["Body"].read())
         df = pd.read_parquet(buffer)
         
+        insert_statement = """
+        INSERT INTO dim_currency (currency_id, currency_code, currency_name)
+        VALUES (%s, %s, %s)
+        """
+        for row in df.itertuples(index=False, name=None):
+            db.run(insert_statement, row)

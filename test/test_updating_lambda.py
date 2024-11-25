@@ -1,2 +1,32 @@
 from src.updating_lambda import*
+from moto import mock_aws
+import pytest, boto3, os
+from src.utils.df_to_parquet_in_s3 import df_to_parquet_in_s3
 
+
+def connect_to_db():
+    sm_client = boto3.client("secretsmanager", "eu-west-2")
+    credentials = retrieve_secret(sm_client, "gb-ttotes/test-db-credentials")
+
+
+    return Connection(
+        user=credentials["TEST_USER"],
+        password=credentials["TEST_PASSWORD"],
+        database=credentials["TEST_DATABASE"],
+        host=credentials["TEST_HOST"],
+        port=credentials["TEST_PORT"],
+    )
+
+@mock_aws
+def test_util_read_parquet_from_s3():
+    s3_client = boto3.client('s3')
+    s3_client.create_bucket(Bucket="processing-test-bucket",
+                            CreateBucketConfiguration={"LocationConstraint":"eu-west-2"})
+    test_json = '[{"currency_id": 1, "currency_code": "GBP", "currency_name": "British pound sterling"}]'
+    test_df = pd.read_json(test_json)
+    test_folder = "test-folder"
+    test_file_name = "test-file-name"
+    df_to_parquet_in_s3(s3_client, test_df, "processing-test-bucket", test_folder, test_file_name)
+    output = read_parquet_from_s3(s3_client,"processing-test-bucket",f"{test_folder}/{test_file_name}.parquet")
+    print(output)
+    assert isinstance(output,pd.DataFrame)
