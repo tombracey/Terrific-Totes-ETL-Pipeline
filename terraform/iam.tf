@@ -29,6 +29,13 @@ resource "aws_iam_role" "processing_lambda_role" {
   assume_role_policy = data.aws_iam_policy_document.lambda_trust_policy.json
 }
 
+# UPLOADING LAMBDA #
+
+resource "aws_iam_role" "uploading_lambda_role" {
+  name_prefix        = "role-${var.uploading_lambda_name}"
+  assume_role_policy = data.aws_iam_policy_document.lambda_trust_policy.json
+}
+
 # LAMBDA UPDATE AND RETRIEVE SECRETS ATTACHMENT
 
 data "aws_iam_policy_document" "secrets_manager_data_policy_doc" {
@@ -92,6 +99,24 @@ resource "aws_iam_role_policy_attachment" "processing_lambda_s3_write_policy_att
   policy_arn = aws_iam_policy.processing_s3_write_policy.arn
 }
 
+# UPLOADING LAMBDA S3 PERMISSIONS AND ATTACHMENT
+
+data "aws_iam_policy_document" "retrieving_data_from_s3_processing_bucket_policy_doc" {
+  statement {
+    actions = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.processing_bucket.arn}/*"]
+  }
+}
+
+resource "aws_iam_policy" "uploading_s3_read_policy" {
+  name_prefix = "s3-policy-${var.uploading_lambda_name}-read"
+  policy      = data.aws_iam_policy_document.retrieving_data_from_s3_processing_bucket_policy_doc.json
+}
+
+resource "aws_iam_role_policy_attachment" "uploading_lambda_s3_read_policy_attachment" {
+  role       = aws_iam_role.uploading_lambda_role.name
+  policy_arn = aws_iam_policy.uploading_s3_read_policy.arn
+}
 
 # INGESTION CLOUDWATCH LOGS POLICY AND ATTACHMENT TO LAMBDA ROLE
 

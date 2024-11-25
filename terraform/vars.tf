@@ -53,6 +53,11 @@ variable "processing_lambda_filename" {
   default = "processing_lambda"
 }
 
+variable "uploading_lambda_filename" {
+  type = string
+  default = "uploading_lambda"
+}
+
 variable "state_machine_name" {
   type    = string
   default = "gb-ttotes-state-machine"
@@ -66,4 +71,9 @@ variable "scheduler_name" {
 variable "processing_lambda_name" {
   type = string
   default = "gb-ttotes-processing-lambda"
+}
+
+variable "uploading_lambda_name" {
+  type = string
+  default = "gb-ttotes-uploading-lambda"
 }
