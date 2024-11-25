@@ -179,6 +179,34 @@ resource "aws_iam_role_policy_attachment" "processing_lambda_cloudwatch_logs_pol
   policy_arn = aws_iam_policy.processing_cloudwatch_logs_policy.arn
 }
 
+# UPLOADING CLOUDWATCH LOGS POLICY AND ATTACHMENT TO LAMBDA ROLE
+
+data "aws_iam_policy_document" "uploading_cloudwatch_logs_policy_document" {
+  statement {
+
+
+    actions = ["logs:CreateLogGroup"]
+
+    resources = [
+      "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"
+    ]
+  }
+  statement {
+    actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
+    resources = ["arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.uploading_lambda_name}:*"]
+  }
+}
+
+resource "aws_iam_policy" "uploading_cloudwatch_logs_policy" {
+  name   = "uploading_cloudwatch_logs_policy"
+  policy = data.aws_iam_policy_document.uploading_cloudwatch_logs_policy_document.json
+}
+
+
+resource "aws_iam_role_policy_attachment" "uploading_lambda_cloudwatch_logs_policy_attachment" {
+  role       = aws_iam_role.uploading_lambda_role.name
+  policy_arn = aws_iam_policy.uploading_cloudwatch_logs_policy.arn
+}
 
 ########################################################################## 
 
