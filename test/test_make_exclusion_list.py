@@ -36,15 +36,17 @@ def test_make_already_updated_list_fetches_updated_ids_from_update_packet(s3_buc
     s3_bucket.upload_file(
         Bucket="test_bucket",
         Filename="test/test_data/staff/2024-11-20 15_22_10.531518.json",
-        Key="staff/2024-11-20 15_22_10.531518.json"
+        Key="staff/2024-11-20 15_22_10.531518.json",
     )
     s3_bucket.upload_file(
         Bucket="test_bucket",
         Filename="test/test_data/staff/2024-11-21 09_38_15.221234.json",
-        Key="staff/2024-11-21 09_38_15.221234.json"
+        Key="staff/2024-11-21 09_38_15.221234.json",
     )
 
-    test_already_updated_list = make_already_updated_list(s3_bucket, "test_bucket", "staff", "2024-11-21 09_38_15.221234")
+    test_already_updated_list = make_already_updated_list(
+        s3_bucket, "test_bucket", "staff", "2024-11-21 09_38_15.221234"
+    )
 
     assert isinstance(test_already_updated_list, list)
     assert test_already_updated_list == [1, 16]

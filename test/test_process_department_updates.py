@@ -31,6 +31,7 @@ def s3_bucket(s3_client):
     )
     yield s3_client
 
+
 def test_process_department_updates_updates_staff_df(s3_bucket):
     s3_bucket.upload_file(
         Bucket="test_bucket",
@@ -52,61 +53,64 @@ def test_process_department_updates_updates_staff_df(s3_bucket):
         Filename="test/test_data/department/2024-11-21 09_38_15.221234.json",
         Key="department/2024-11-21 09_38_15.221234.json",
     )
-    last_checked_time = '2024-11-21 09_38_15.221234'
+    last_checked_time = "2024-11-21 09_38_15.221234"
 
-    #Simulates previous generation of staff df
-    file_name = f'staff/{last_checked_time}.json'
-    json_string = s3_bucket.get_object(
-        Bucket='test_bucket', 
-        Key=file_name
-        )['Body'].read().decode('utf-8')
+    # Simulates previous generation of staff df
+    file_name = f"staff/{last_checked_time}.json"
+    json_string = (
+        s3_bucket.get_object(Bucket="test_bucket", Key=file_name)["Body"]
+        .read()
+        .decode("utf-8")
+    )
     staff_df = pd.DataFrame.from_dict(json.loads(json_string))
 
-    department_ids_to_fetch = staff_df['department_id'].tolist()
+    department_ids_to_fetch = staff_df["department_id"].tolist()
     departments_df = fetch_latest_row_versions(
-        s3_bucket, 'test_bucket',
-        'department', department_ids_to_fetch)
-    dim_staff_df = pd.merge(
-        staff_df, departments_df,
-        how='left', on='department_id')
-    dim_staff_df = dim_staff_df.drop(columns=[
-        'department_id', 
-        'created_at_x', 
-        'last_updated_x', 
-        'manager', 
-        'created_at_y', 
-        'last_updated_y'])
-    dim_staff_df = dim_staff_df[[
-        "staff_id",
-        "first_name",
-        "last_name",
-        "department_name",
-        "location",
-        "email_address"
-    ]]
-    dim_staff_df['location'] = dim_staff_df['location'].fillna("Undefined")
+        s3_bucket, "test_bucket", "department", department_ids_to_fetch
+    )
+    dim_staff_df = pd.merge(staff_df, departments_df, how="left", on="department_id")
+    dim_staff_df = dim_staff_df.drop(
+        columns=[
+            "department_id",
+            "created_at_x",
+            "last_updated_x",
+            "manager",
+            "created_at_y",
+            "last_updated_y",
+        ]
+    )
+    dim_staff_df = dim_staff_df[
+        [
+            "staff_id",
+            "first_name",
+            "last_name",
+            "department_name",
+            "location",
+            "email_address",
+        ]
+    ]
+    dim_staff_df["location"] = dim_staff_df["location"].fillna("Undefined")
 
     # Begin testing departments update function
-    test_output_df = process_department_updates(s3_bucket, 'test_bucket', last_checked_time, dim_staff_df)
+    test_output_df = process_department_updates(
+        s3_bucket, "test_bucket", last_checked_time, dim_staff_df
+    )
 
     # already updated staff ids: 1, 16
     # updated department data changes dep id 6
     # staff ids, 2 and 3 have dep id 6
-    staff_id_2_df = test_output_df[test_output_df['staff_id'] == 2]
-    assert staff_id_2_df.loc[staff_id_2_df.index[0], 'location'] == "Liverpool"
+    staff_id_2_df = test_output_df[test_output_df["staff_id"] == 2]
+    assert staff_id_2_df.loc[staff_id_2_df.index[0], "location"] == "Liverpool"
     assert len(staff_id_2_df.index) == 1
 
-    staff_id_3_df = test_output_df[test_output_df['staff_id'] == 3]
-    assert staff_id_3_df.loc[staff_id_3_df.index[0], 'location'] == "Liverpool"
+    staff_id_3_df = test_output_df[test_output_df["staff_id"] == 3]
+    assert staff_id_3_df.loc[staff_id_3_df.index[0], "location"] == "Liverpool"
     assert len(staff_id_3_df.index) == 1
 
-    staff_id_16_df = test_output_df[test_output_df['staff_id'] == 16]
-    assert staff_id_16_df.loc[staff_id_16_df.index[0], 'location'] == "Liverpool"
+    staff_id_16_df = test_output_df[test_output_df["staff_id"] == 16]
+    assert staff_id_16_df.loc[staff_id_16_df.index[0], "location"] == "Liverpool"
     assert len(staff_id_16_df.index) == 1
-    
-    assert any(test_output_df['staff_id'].isin([1]).values)
+
+    assert any(test_output_df["staff_id"].isin([1]).values)
 
     assert len(test_output_df.index) == 4
-
-
-
