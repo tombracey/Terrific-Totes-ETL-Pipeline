@@ -255,6 +255,14 @@ def processing_lambda_handler(event, context):
         INGESTION_BUCKET_NAME = os.environ["INGESTION_BUCKET_NAME"]
         PROCESSING_BUCKET_NAME = os.environ["PROCESSING_BUCKET_NAME"]
 
+        # assign DF variable names to None -- used in constructing output later
+        dim_counterparty_df = None
+        dim_currency_df = None
+        dim_design_df = None
+        dim_staff_df = None
+        fact_sales_order_df = None
+        dim_location_df = None
+
         logger.info(f"Ingestion bucket is {INGESTION_BUCKET_NAME}.")
         logger.info(f"Processing bucket is {PROCESSING_BUCKET_NAME}.")
 
@@ -585,9 +593,20 @@ def processing_lambda_handler(event, context):
             )
             logger.info("Save successful.")
 
-        output = {"HasNewRows": {}, "LastCheckedTime": last_checked_time}
+        output = {
+            "HasNewRows": {
+                "dim_counterparty": dim_counterparty_df is not None,
+                "dim_currency": dim_currency_df is not None,
+                "dim_design": dim_design_df is not None,
+                "dim_staff": dim_staff_df is not None,
+                "fact_sales_order": fact_sales_order_df is not None,
+                "dim_location": dim_location_df is not None
+            },
+            "LastCheckedTime": last_checked_time
+            }
 
         logger.info(output)
+        print(output)
         return output
 
     except Exception as e:
