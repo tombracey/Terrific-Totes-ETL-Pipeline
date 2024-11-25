@@ -1,4 +1,4 @@
-from src.processing_lambda import make_exclusion_list
+from src.processing_lambda import make_already_updated_list
 import pytest, os, boto3
 from moto import mock_aws
 
@@ -32,7 +32,7 @@ def s3_bucket(s3_client):
     yield s3_client
 
 
-def test_make_exclusion_list_fetches_updated_ids_from_update_packet(s3_bucket):
+def test_make_already_updated_list_fetches_updated_ids_from_update_packet(s3_bucket):
     s3_bucket.upload_file(
         Bucket="test_bucket",
         Filename="test/test_data/staff/2024-11-20 15_22_10.531518.json",
@@ -44,7 +44,7 @@ def test_make_exclusion_list_fetches_updated_ids_from_update_packet(s3_bucket):
         Key="staff/2024-11-21 09_38_15.221234.json"
     )
 
-    test_exclusion_list = make_exclusion_list(s3_bucket, "test_bucket", "staff", "2024-11-21 09_38_15.221234")
+    test_already_updated_list = make_already_updated_list(s3_bucket, "test_bucket", "staff", "2024-11-21 09_38_15.221234")
 
-    assert isinstance(test_exclusion_list, list)
-    assert test_exclusion_list == [1, 16]
+    assert isinstance(test_already_updated_list, list)
+    assert test_already_updated_list == [1, 16]

@@ -13,7 +13,7 @@ logger = logging.getLogger("logger")
 logger.setLevel(logging.INFO)
 
 
-def make_exclusion_list(s3_client, bucket_name, table_name, last_checked_time):
+def make_already_updated_list(s3_client, bucket_name, table_name, last_checked_time):
     json_object = s3_client.get_object(
         Bucket=bucket_name,
         Key=f"{table_name}/{last_checked_time}.json"
@@ -24,7 +24,66 @@ def make_exclusion_list(s3_client, bucket_name, table_name, last_checked_time):
 
     return [row[f"{table_name}_id"] for row in updated_rows]
 
+def process_department_updates(s3_client, bucket_name, last_checked_time, dim_staff_df=None):
+            ##Fetch updated department table rows
+        file_name = f'department/{last_checked_time}.json'
+        json_string = s3_client.get_object(
+            Bucket=bucket_name, 
+            Key=file_name
+            )['Body'].read().decode('utf-8')
+        department_df = pd.DataFrame.from_dict(json.loads(json_string))
+        updated_department_ids = department_df['department_id'].tolist()  
 
+        ##Calculate staff table rows to be updated  
+        file_list = s3_client.list_objects(
+            Bucket=bucket_name,
+            Prefix="staff/"
+        )['Contents']
+
+        if dim_staff_df:
+            already_updated_list = make_already_updated_list(
+                s3_client, 
+                bucket_name, 
+                'staff', 
+                last_checked_time)
+        else:
+            dim_staff_df = pd.DataFrame()
+
+        for i in range(len(file_list), 0, -1):
+            cur_filename = file_list[i-1]['Key']
+
+            json_object = s3_client.get_object(
+                Bucket=bucket_name,
+                Key=cur_filename
+            )
+            json_string = json_object['Body'].read().decode("utf-8")
+
+            working_df = pd.DataFrame.from_dict(json.loads(json_string))
+            for j in range(len(working_df.index), 0, -1):
+                if working_df.loc[j-1, 'staff_id'] not in already_updated_list:    
+                    if working_df.loc[j-1, 'department_id'] in updated_department_ids:
+                        current_row = working_df.loc[j-1]
+                        current_row = pd.merge(
+                            current_row, department_df,
+                            how='left', on='department_id')
+                        current_row = current_row.drop(columns=[
+                            'department_id', 
+                            'created_at_x', 
+                            'last_updated_x', 
+                            'manager', 
+                            'created_at_y', 
+                            'last_updated_y'])
+                        current_row = current_row[[
+                            "staff_id",
+                            "first_name",
+                            "last_name",
+                            "department_name",
+                            "location",
+                            "email_address"
+                        ]]
+                        current_row['location'] = current_row['location'].fillna("Undefined")
+                        dim_staff_df.append(current_row, ignore_index=True)
+                        already_updated_list.append(working_df.loc[j-1, 'staff_id'])
 
 
 def processing_lambda_handler(event, context):
@@ -67,6 +126,9 @@ def processing_lambda_handler(event, context):
             'phone': 'counterparty_legal_phone_number'
         })
         # Save to parquet file here
+
+    # if has_new_rows['address']:
+
 
     if has_new_rows['currency']:
         file_name = f'currency/{last_checked_time}.json'
@@ -127,8 +189,77 @@ def processing_lambda_handler(event, context):
 
         # Save to parquet file here
 
-    if has_new_rows['department']:
-        pass
+    if has_new_rows['department']: 
+        ##Fetch updated department table rows
+        file_name = f'department/{last_checked_time}.json'
+        json_string = s3_client.get_object(
+            Bucket=INGESTION_BUCKET_NAME, 
+            Key=file_name
+            )['Body'].read().decode('utf-8')
+        department_df = pd.DataFrame.from_dict(json.loads(json_string))
+        updated_department_ids = department_df['department_id'].tolist()  
+
+        ##Calculate staff table rows to be updated  
+        file_list = s3_client.list_objects(
+            Bucket=INGESTION_BUCKET_NAME,
+            Prefix="staff/"
+        )['Contents']
+
+        if has_new_rows['staff']:
+            already_updated_list = make_already_updated_list(
+            s3_client, 
+            INGESTION_BUCKET_NAME, 
+            'staff', 
+            last_checked_time)
+        else:
+            dim_staff_df = pd.DataFrame()
+
+        for i in range(len(file_list), 0, -1):
+            cur_filename = file_list[i-1]['Key']
+
+            json_object = s3_client.get_object(
+                Bucket=INGESTION_BUCKET_NAME,
+                Key=cur_filename
+            )
+            json_string = json_object['Body'].read().decode("utf-8")
+
+            working_df = pd.DataFrame.from_dict(json.loads(json_string))
+            for j in range(len(working_df.index), 0, -1):
+                if working_df.loc[j-1, 'staff_id'] not in already_updated_list:    
+                    if working_df.loc[j-1, 'department_id'] in updated_department_ids:
+                        current_row = working_df.loc[j-1]
+                        current_row = pd.merge(
+                            current_row, department_df,
+                            how='left', on='department_id')
+                        current_row = current_row.drop(columns=[
+                            'department_id', 
+                            'created_at_x', 
+                            'last_updated_x', 
+                            'manager', 
+                            'created_at_y', 
+                            'last_updated_y'])
+                        current_row = current_row[[
+                            "staff_id",
+                            "first_name",
+                            "last_name",
+                            "department_name",
+                            "location",
+                            "email_address"
+                        ]]
+                        current_row['location'] = current_row['location'].fillna("Undefined")
+                        dim_staff_df.append(current_row, ignore_index=True)
+                        already_updated_list.append(working_df.loc[j-1, 'staff_id'])
+
+        #save to parquet file here
+            
+                    
+
+
+                        
+
+            #     # latest_row_dicts.append(row_dicts[j-1])
+            #     # list_of_ids.remove(row_dicts[j-1][id_col_name])
+
 
     # if has_new_rows['address']:
     #     file_name = f'address/{last_checked_time}.json'
@@ -149,7 +280,7 @@ if __name__ == '__main__':
         'HasNewRows': {
             'counterparty': False, 
             'currency': False, 
-            'department': False, 
+            'department': True, 
             'design': False, 
             'staff': True, 
             'sales_order': False, 
