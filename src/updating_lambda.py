@@ -27,6 +27,10 @@ def connect_to_db():
         port=credentials["DW_PORT"],
     )
 
+
+def close_connection(conn):
+    conn.close()
+
 # PARQUET TO DF
 def read_parquet_from_s3(s3_client,BUCKET_NAME,file_key):
     response = s3_client.get_object(
@@ -36,16 +40,18 @@ def read_parquet_from_s3(s3_client,BUCKET_NAME,file_key):
     df = pd.read_parquet(buffer)
     return df
 
-# INSTERT INTO DW
+# INSERT INTO DW
 def insert_into_dw(df,db):
     insert_statement = """
         INSERT INTO dim_currency (currency_id, currency_code, currency_name)
-        VALUES (%s, %s, %s)
+        VALUES (1, 'two', 3);
         """
-    for row in df.itertuples(index=False, name=None):
-        db.run(insert_statement, row)
-
-
+    # for row in df.itertuples(index=False, name=None):
+    #     db.run(insert_statement, row)
+    db.run(insert_statement)
+        
+    close_connection(db)
+   
 # LAMBDA HANDLER
 def updating_lambda_handler(event, context):
 
@@ -69,3 +75,5 @@ def updating_lambda_handler(event, context):
         """
         for row in df.itertuples(index=False, name=None):
             db.run(insert_statement, row)
+
+    close_connection(db)    

@@ -12,7 +12,7 @@ def connect_to_db():
     return Connection(
         user=credentials["TEST_USER"],
         password=credentials["TEST_PASSWORD"],
-        database=credentials["TEST_DATABASE"],
+        database=credentials["TEST_DB"],
         host=credentials["TEST_HOST"],
         port=credentials["TEST_PORT"],
     )
@@ -30,3 +30,13 @@ def test_util_read_parquet_from_s3():
     output = read_parquet_from_s3(s3_client,"processing-test-bucket",f"{test_folder}/{test_file_name}.parquet")
     print(output)
     assert isinstance(output,pd.DataFrame)
+    
+
+def test_util_insert_row_into_data_warehouse():
+    
+    test_dict = {"currency_id": [1], "currency_code": ["GBP"], "currency_name": ["British pound sterling"]}
+    test_df = pd.DataFrame.from_dict(test_dict)
+    db = connect_to_db()
+    db.run("CREATE TABLE IF NOT EXISTS dim_currency (currency_id INT, currency_code VARCHAR, currency_name VARCHAR);")
+    # insert_into_dw(test_df,db)
+    print(db.run("SELECT * FROM dim_currency;"))
