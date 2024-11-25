@@ -33,7 +33,7 @@ resource "aws_s3_object" "processing_lambda_code" {
 
 resource "aws_s3_object" "uploading_lambda_code" {
   bucket = aws_s3_bucket.code_bucket.id
-  key    = "uploading/function.zip"
+  key    = "load/function.zip"
   source = "${path.module}/../packages/load/function.zip"
   etag   = filemd5(data.archive_file.uploading_lambda_zip.output_path)
 }
