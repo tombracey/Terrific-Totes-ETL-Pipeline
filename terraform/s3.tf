@@ -12,7 +12,7 @@ resource "aws_s3_bucket" "ingestion_bucket" {
 }
 
 resource "aws_s3_bucket" "processing_bucket" {
-    bucket_prefix = var.processing_bucket_prefix
+  bucket_prefix = var.processing_bucket_prefix
 }
 
 ##LAMBDA CODE##
@@ -40,3 +40,10 @@ resource "aws_s3_object" "lambda_layer" {
   etag       = filemd5(data.archive_file.layer_code.output_path)
   depends_on = [data.archive_file.layer_code]
 }
+
+# resource "aws_s3_object" "processing_lambda_layer" {
+#   bucket     = aws_s3_bucket.code_bucket.id
+#   key        = "layer/processing-layer.zip"
+#   source     = "${path.module}/../dependencies-alt/python3.9/layer.zip"
+#   etag       = filemd5("${path.module}/../dependencies-alt/python3.9/layer.zip")
+# }

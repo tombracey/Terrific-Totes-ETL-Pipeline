@@ -1,5 +1,7 @@
-boto3
+# boto3
 pg8000
-babel
+numpy
 pandas
-pyarrow
+# pyarrow
+fastparquet
+iso4217

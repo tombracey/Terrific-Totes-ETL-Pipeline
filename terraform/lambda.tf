@@ -34,7 +34,8 @@ resource "aws_lambda_function" "processing_lambda" {
   runtime          = var.python_runtime
   timeout          = 180
   memory_size      = 512
-  source_code_hash = filebase64sha256("${path.module}/../src/${var.processing_lambda_filename}.py")
+  # source_code_hash = filebase64sha256("${path.module}/../src/${var.processing_lambda_filename}.py")
+  source_code_hash = data.archive_file.processing_lambda_zip.output_base64sha256
   publish          = true
   layers           = [
     # "arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python312:14",

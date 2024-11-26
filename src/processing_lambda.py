@@ -1,8 +1,8 @@
 import logging, os, json
 import boto3
 import pandas as pd
-import pyarrow
-from babel.numbers import get_currency_name
+# import pyarrow
+from iso4217 import Currency
 
 # temporary includes:
 # from src.utils.fetch_latest_row_versions import fetch_latest_row_versions
@@ -19,6 +19,9 @@ logger.setLevel(logging.INFO)
 ####                           ####
 ###################################
 
+
+def get_currency_name(currency_code):
+    return Currency(currency_code).currency_name
 
 def fetch_latest_row_versions(s3_client, bucket_name, table_name, list_of_ids):
     id_col_name = f"{table_name}_id"
@@ -383,7 +386,7 @@ def processing_lambda_handler(event, context):
             dim_currency_df = currency_df.drop(columns=["last_updated", "created_at"])
 
             dim_currency_df["currency_name"] = dim_currency_df["currency_code"].apply(
-                get_currency_name
+                lambda x: Currency(x).currency_name
             )
 
             logger.info(
@@ -395,6 +398,7 @@ def processing_lambda_handler(event, context):
                 "Saving dim_currency_df DataFrame to "
                 + f"dim_currency/{last_checked_time}.parquet ..."
             )
+            
             df_to_parquet_in_s3(
                 s3_client,
                 dim_currency_df,
@@ -619,15 +623,15 @@ if __name__ == "__main__":
         "HasNewRows": {
             "counterparty": True,
             "currency": True,
-            "department": True,
-            "design": True,
-            "staff": True,
-            "sales_order": True,
-            "address": True,
-            "payment": True,
-            "purchase_order": True,
-            "payment_type": True,
-            "transaction": True,
+            "department": False,
+            "design": False,
+            "staff": False,
+            "sales_order": False,
+            "address": False,
+            "payment": False,
+            "purchase_order": False,
+            "payment_type": False,
+            "transaction": False,
         },
         "LastCheckedTime": "2024-11-20 15:22:10.531518",
     }

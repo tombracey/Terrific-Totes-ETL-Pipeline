@@ -59,6 +59,10 @@ bandit:
 safety:
 	$(call execute_in_env, $(PIP) install safety)
 
+## Install boto3
+boto3:
+	$(call execute_in_env, $(PIP) install boto3)
+
 ## Install moto
 moto:
 	$(call execute_in_env, $(PIP) install moto)
