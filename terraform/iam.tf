@@ -193,6 +193,11 @@ data "aws_iam_policy_document" "state_machine_policy_document" {
     actions   = ["lambda:InvokeFunction"]
     resources = ["arn:aws:lambda:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:function:${var.ingestion_lambda_name}:*"]
   }
+
+   statement {
+    actions   = ["lambda:InvokeFunction"]
+    resources = ["arn:aws:lambda:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:function:${var.processing_lambda_name}:*"]
+  }
 }
 
 
