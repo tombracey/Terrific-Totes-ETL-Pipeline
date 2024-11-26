@@ -59,8 +59,17 @@ bandit:
 safety:
 	$(call execute_in_env, $(PIP) install safety)
 
+## Install moto
+moto:
+	$(call execute_in_env, $(PIP) install moto)
+
+## Install pytest
+pytest:
+	$(call execute_in_env, $(PIP) install pytest)
+	$(call execute_in_env, $(PIP) install pytest-cov)
+
 ## Set up dev requirements (bandit, safety, black)
-dev-setup: black coverage bandit safety
+dev-setup: black coverage bandit safety moto pytest
 
 # Build / Run
 
