@@ -1,6 +1,6 @@
-from src.utils.df_to_parquet_in_s3 import df_to_parquet_in_s3
+from src.processing_lambda import df_to_parquet_in_s3
 from moto import mock_aws
-import pytest, os, boto3, pyarrow, io
+import pytest, os, boto3, io
 import pandas as pd
 
 

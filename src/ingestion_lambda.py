@@ -3,7 +3,6 @@ import datetime
 import boto3
 import os
 from pg8000.native import Connection, identifier
-from dotenv import load_dotenv
 import logging
 from collections.abc import Mapping, Iterable
 from decimal import Decimal, Context, MAX_PREC

@@ -4,6 +4,10 @@ import pandas as pd
 def fetch_latest_row_versions(s3_client, bucket_name, table_name, list_of_ids):
     id_col_name = f"{table_name}_id"
 
+    # eliminating repeats from list of ids
+    set_of_ids = set(list_of_ids)
+    list_of_ids = list(set_of_ids) 
+
     # look in folder of S3 bucket
     file_list = s3_client.list_objects(
         Bucket=bucket_name,

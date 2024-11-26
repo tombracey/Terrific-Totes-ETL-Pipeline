@@ -125,14 +125,24 @@ def test_get_data_ouputs_the_correct_data_intact():
 
 
 def test_ingestion_lambda_handler_logs_errors():
-
     with TestCase.assertLogs("logger", level="ERROR") as log:
+        # Check whether ingestion bucket env variable exists
+        # so that we can restore it later
+        # (this is so that we are able to keep it set locally
+        #  for the purposes of testing other parts of our code)
+        try:
+            ingestion_env_keeper = os.environ["INGESTION_BUCKET_NAME"]
+            ingestion_env_var_existed = True
+
+            # Ditch the env var so the error will be raised
+            os.environ.pop("INGESTION_BUCKET_NAME")
+        except:
+            ingestion_env_var_existed = False
+
         ingestion_lambda_handler({}, {})
 
-        # assert (
-        #     log.output[0]
-        #     == "ERROR:logger:{'Error found': 'Test error'}"
-        # )
+        if ingestion_env_var_existed:
+            os.environ["INGESTION_BUCKET_NAME"] = ingestion_env_keeper
 
         assert (
             log.output[0]
