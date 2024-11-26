@@ -1,4 +1,5 @@
-from pg8000.native import Connection
+# from pg8000.native import Connection
+import pg8000
 import boto3
 from src.ingestion_lambda import retrieve_secret
 
@@ -6,7 +7,7 @@ def connect_to_dw():
     sm_client = boto3.client("secretsmanager", "eu-west-2")
     credentials = retrieve_secret(sm_client, "gb-ttotes/totesys-olap-credentials")
 
-    return Connection(
+    return pg8000.connect(
         user=credentials["DW_USER"],
         password=credentials["DW_PASSWORD"],
         database=credentials["DW_DATABASE"],
@@ -14,8 +15,7 @@ def connect_to_dw():
         port=credentials["DW_PORT"]
     )
 
-def insert_dim_date_table_into_data_warehouse():
-    conn = connect_to_dw()
+def insert_dim_date_table_into_data_warehouse(conn = connect_to_dw()):
     conn.run('''CREATE TABLE dim_date (
             date_id DATE PRIMARY KEY NOT NULL,
             year INT NOT NULL,
