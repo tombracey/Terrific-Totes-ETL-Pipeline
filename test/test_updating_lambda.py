@@ -1,8 +1,7 @@
 from src.updating_lambda import*
-from pg8000.native import Connection
 import pg8000
 from moto import mock_aws
-import pytest, boto3, os
+import boto3
 from src.utils.df_to_parquet_in_s3 import df_to_parquet_in_s3
 
 
@@ -55,3 +54,19 @@ def test_util_insert_multiple_rows_into_data_warehouse():
     insert_into_dw(test_df,db,"dim_currency")
     assert db.run("SELECT * FROM dim_currency;") == ([1, 'GBP', 'British pound sterling'],[2, "USD", "US dollar"])
     db.close()
+
+
+def test_updating_lambda_insert():
+
+    test_event = {
+  "HasNewRows": {
+    "dim_counterparty": True,
+    "dim_currency": True,
+    "dim_design": True,
+    "dim_location": True,
+    "dim_staff": True,
+    "fact_sales_order": True
+  },
+  "LastCheckedTime": "2024-11-20 15:22:10.531518"
+}
+    updating_lambda_handler(test_event,{})    

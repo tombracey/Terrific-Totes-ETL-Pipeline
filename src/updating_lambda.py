@@ -1,5 +1,5 @@
 import boto3, os, logging, json, io
-from pg8000.native import Connection
+import pg8000
 import pandas as pd
 
 logger = logging.getLogger("logger")
@@ -17,9 +17,9 @@ def retrieve_secret(sm_client, secret_id):
 # CONNECTION
 def connect_to_db():
     sm_client = boto3.client("secretsmanager", "eu-west-2")
-    credentials = retrieve_secret(sm_client, "gb-ttotes/postgres-olap-credentials")
+    credentials = retrieve_secret(sm_client, "gb-ttotes/totesys-olap-credentials")
 
-    return Connection(
+    return pg8000.connect(
         user=credentials["DW_USER"],
         password=credentials["DW_PASSWORD"],
         database=credentials["DW_DATABASE"],
@@ -44,15 +44,12 @@ def read_parquet_from_s3(s3_client,BUCKET_NAME,file_key):
 def insert_into_dw(df,db,table_name):
     column_names = ", ".join(df.columns)
     placehoders = ", ".join(["%s"] * len(df.columns))
-    print(column_names)
     cursor = db.cursor() 
     insert_statement = f"""
         INSERT INTO {table_name} ({column_names})
         VALUES ({placehoders});
         """
-    print(insert_statement)
     for index, row in df.iterrows():
-        print(row)
         cursor.execute(insert_statement, row)
     
     db.commit()
@@ -62,7 +59,8 @@ def insert_into_dw(df,db,table_name):
 # LAMBDA HANDLER
 def updating_lambda_handler(event, context):
 
-    BUCKET_NAME = os.environ["PROCESSING_BUCKET_NAME"]
+    BUCKET_NAME = "green-bean-processing-bucket-20241121160032242000000001"
+    # BUCKET_NAME = os.environ["PROCESSING_BUCKET_NAME"]
     
     last_checked_time = event["LastCheckedTime"]
     s3_client = boto3.client("s3")
@@ -75,5 +73,5 @@ def updating_lambda_handler(event, context):
             file_key=f"{table_name}/{last_checked_time}.parquet"
             df = read_parquet_from_s3(s3_client,BUCKET_NAME,file_key)
             insert_into_dw(df,db,table_name)
-    
+    print("Data inserted in warehouse.")
     close_connection(db)    
