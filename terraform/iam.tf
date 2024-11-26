@@ -1,5 +1,3 @@
-
-
 # LAMBDA POLICY AND ROLE
 data "aws_iam_policy_document" "lambda_trust_policy" {
   statement {
@@ -76,7 +74,15 @@ resource "aws_iam_role_policy_attachment" "ingestion_lambda_s3_write_policy_atta
 
 data "aws_iam_policy_document" "processing_s3_data_policy_doc" {
   statement {
-    actions = ["s3:PutObject"]
+    actions   = ["s3:ListBucket"]
+    resources = ["${aws_s3_bucket.ingestion_bucket.arn}"]
+  }
+  statement {
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.ingestion_bucket.arn}/*"]
+  }
+  statement {
+    actions   = ["s3:PutObject"]
     resources = ["${aws_s3_bucket.processing_bucket.arn}/*"]
   }
 }
@@ -98,10 +104,7 @@ resource "aws_iam_role_policy_attachment" "processing_lambda_s3_write_policy_att
 
 data "aws_iam_policy_document" "ingestion_cloudwatch_logs_policy_document" {
   statement {
-
-
     actions = ["logs:CreateLogGroup"]
-
     resources = [
       "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"
     ]
@@ -128,10 +131,7 @@ resource "aws_iam_role_policy_attachment" "ingestion_lambda_cloudwatch_logs_poli
 
 data "aws_iam_policy_document" "processing_cloudwatch_logs_policy_document" {
   statement {
-
-
     actions = ["logs:CreateLogGroup"]
-
     resources = [
       "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"
     ]

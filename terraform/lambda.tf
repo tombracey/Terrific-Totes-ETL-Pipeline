@@ -36,7 +36,11 @@ resource "aws_lambda_function" "processing_lambda" {
   memory_size      = 512
   source_code_hash = filebase64sha256("${path.module}/../src/${var.processing_lambda_filename}.py")
   publish          = true
-  layers           = [aws_lambda_layer_version.dependencies.arn]
+  layers           = [
+    # "arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python312:14",
+    # "arn:aws:lambda:eu-west-2:575108949108:layer:pandas_pytz_numpy:2",
+    aws_lambda_layer_version.dependencies.arn
+  ]
 
   depends_on = [
     aws_s3_object.processing_lambda_code,
@@ -45,6 +49,7 @@ resource "aws_lambda_function" "processing_lambda" {
 
   environment {
     variables = {
+      INGESTION_BUCKET_NAME = aws_s3_bucket.ingestion_bucket.id,
       PROCESSING_BUCKET_NAME = aws_s3_bucket.processing_bucket.id
     }
   }

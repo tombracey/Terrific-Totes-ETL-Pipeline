@@ -1,8 +1,7 @@
-import logging
+import logging, os, json
 import boto3
 import pandas as pd
-import os
-import json
+import pyarrow
 from babel.numbers import get_currency_name
 
 # temporary includes:
@@ -226,16 +225,16 @@ def process_address_updates(
 
 
 def df_to_parquet_in_s3(client, df, bucket_name, folder, file_name):
-    if not os.path.exists("tmp"):
-        os.mkdir("tmp")
-    df.to_parquet(f"./tmp/{file_name}.parquet")
+    if not os.path.exists("/tmp"):
+        os.mkdir("/tmp")
+    df.to_parquet(f"/tmp/{file_name}.parquet")
 
     client.upload_file(
-        f"./tmp/{file_name}.parquet", bucket_name, f"{folder}/{file_name}.parquet"
+        f"/tmp/{file_name}.parquet", bucket_name, f"{folder}/{file_name}.parquet"
     )
     logger.info(f"{folder}/{file_name}.parquet uploaded to processing")
 
-    os.remove(f"./tmp/{file_name}.parquet")
+    os.remove(f"/tmp/{file_name}.parquet")
 
 
 ###################################
