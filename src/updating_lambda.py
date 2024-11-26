@@ -59,19 +59,31 @@ def insert_into_dw(df,db,table_name):
 # LAMBDA HANDLER
 def updating_lambda_handler(event, context):
 
-    BUCKET_NAME = "green-bean-processing-bucket-20241121160032242000000001"
-    # BUCKET_NAME = os.environ["PROCESSING_BUCKET_NAME"]
-    
-    last_checked_time = event["LastCheckedTime"]
-    s3_client = boto3.client("s3")
-    db = connect_to_db()
+    try:
+        # BUCKET_NAME = "green-bean-processing-bucket-20241121160032242000000001"
+        BUCKET_NAME = os.environ["PROCESSING_BUCKET_NAME"]
+        
+        last_checked_time = event["LastCheckedTime"]
+        s3_client = boto3.client("s3")
+        db = connect_to_db()
 
-    has_new_rows = event["HasNewRows"]
-    
-    for table_name in has_new_rows:
-        if has_new_rows[table_name]:
-            file_key=f"{table_name}/{last_checked_time}.parquet"
-            df = read_parquet_from_s3(s3_client,BUCKET_NAME,file_key)
-            insert_into_dw(df,db,table_name)
-    print("Data inserted in warehouse.")
-    close_connection(db)    
+        has_new_rows = event["HasNewRows"]
+        
+        for table_name in has_new_rows:
+            if has_new_rows[table_name]:
+                file_key=f"{table_name}/{last_checked_time}.parquet"
+                df = read_parquet_from_s3(s3_client,BUCKET_NAME,file_key)
+                logger.info(f"adding new row(s) to {table_name}")
+                insert_into_dw(df,db,table_name)
+                logger.info(f"new rows added to {table_name}")
+            else:
+                logger.info(f"no new rows to add to {table_name}")
+        
+        close_connection(db)
+
+    except Exception as e:
+
+        logger.error({"Error found": e})
+        return {"Error found": e}
+        
+        

@@ -56,17 +56,19 @@ def test_util_insert_multiple_rows_into_data_warehouse():
     db.close()
 
 
-def test_updating_lambda_insert():
 
-    test_event = {
-  "HasNewRows": {
-    "dim_counterparty": True,
-    "dim_currency": True,
-    "dim_design": True,
-    "dim_location": True,
-    "dim_staff": True,
-    "fact_sales_order": True
-  },
-  "LastCheckedTime": "2024-11-20 15:22:10.531518"
-}
-    updating_lambda_handler(test_event,{})    
+"""test below was updating the actual datawarehouse, will fail if re-run as files with last checked time "2024-11-20 15:22:10.531518" already added now"""
+# def test_updating_lambda_insert():
+
+#     test_event = {
+#   "HasNewRows": {
+#     "dim_counterparty": True,
+#     "dim_currency": True,
+#     "dim_design": True,
+#     "dim_location": True,
+#     "dim_staff": True,
+#     "fact_sales_order": True
+#   },
+#   "LastCheckedTime": "2024-11-20 15:22:10.531518"
+# }
+#     updating_lambda_handler(test_event,{})    
