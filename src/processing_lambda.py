@@ -1,7 +1,6 @@
 import logging, os, json
 import boto3
 import pandas as pd
-# import pyarrow
 from iso4217 import Currency
 
 # temporary includes:
@@ -398,7 +397,7 @@ def processing_lambda_handler(event, context):
                 "Saving dim_currency_df DataFrame to "
                 + f"dim_currency/{last_checked_time}.parquet ..."
             )
-            
+
             df_to_parquet_in_s3(
                 s3_client,
                 dim_currency_df,
@@ -603,10 +602,10 @@ def processing_lambda_handler(event, context):
                 "dim_design": dim_design_df is not None,
                 "dim_staff": dim_staff_df is not None,
                 "fact_sales_order": fact_sales_order_df is not None,
-                "dim_location": dim_location_df is not None
+                "dim_location": dim_location_df is not None,
             },
-            "LastCheckedTime": last_checked_time
-            }
+            "LastCheckedTime": last_checked_time,
+        }
 
         logger.info(output)
         print(output)

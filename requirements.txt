@@ -1,7 +1,7 @@
 # boto3
 pg8000
-numpy
-pandas
+# numpy
+# pandas
 # pyarrow
-fastparquet
-iso4217
+# fastparquet
+# iso4217

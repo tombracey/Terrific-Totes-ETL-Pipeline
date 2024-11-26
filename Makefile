@@ -72,8 +72,14 @@ pytest:
 	$(call execute_in_env, $(PIP) install pytest)
 	$(call execute_in_env, $(PIP) install pytest-cov)
 
+## Install local dependencies -- supplied separately to AWS
+local-dependencies:
+	$(call execute_in_env, $(PIP) install pandas)
+	$(call execute_in_env, $(PIP) install pyarrow)
+	$(call execute_in_env, $(PIP) install iso4217)
+
 ## Set up dev requirements (bandit, safety, black)
-dev-setup: black coverage bandit safety moto pytest
+dev-setup: black coverage bandit safety moto pytest local-dependencies
 
 # Build / Run
 

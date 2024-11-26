@@ -41,9 +41,9 @@ resource "aws_s3_object" "lambda_layer" {
   depends_on = [data.archive_file.layer_code]
 }
 
-# resource "aws_s3_object" "processing_lambda_layer" {
-#   bucket     = aws_s3_bucket.code_bucket.id
-#   key        = "layer/processing-layer.zip"
-#   source     = "${path.module}/../dependencies-alt/python3.9/layer.zip"
-#   etag       = filemd5("${path.module}/../dependencies-alt/python3.9/layer.zip")
-# }
+resource "aws_s3_object" "processing_lambda_layer" {
+  bucket = aws_s3_bucket.code_bucket.id
+  key    = "layer/processing-layer.zip"
+  source = "${path.module}/../packages/layer/processing_layer_3.zip"
+  etag   = filemd5("${path.module}/../packages/layer/processing_layer_3.zip")
+}

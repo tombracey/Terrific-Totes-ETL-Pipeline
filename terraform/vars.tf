@@ -15,7 +15,7 @@ variable "code_bucket_prefix" {
 
 variable "python_runtime" {
   type    = string
-  default = "python3.12"
+  default = "python3.9"
 }
 
 variable "ingestion_bucket_prefix" {
@@ -24,8 +24,8 @@ variable "ingestion_bucket_prefix" {
 }
 
 variable "processing_bucket_prefix" {
-    type = string
-    default = "green-bean-processing-bucket-"
+  type    = string
+  default = "green-bean-processing-bucket-"
 }
 
 variable "error_tag" {
@@ -49,7 +49,7 @@ variable "ingestion_lambda_filename" {
 }
 
 variable "processing_lambda_filename" {
-  type = string
+  type    = string
   default = "processing_lambda"
 }
 
@@ -64,6 +64,6 @@ variable "scheduler_name" {
 }
 
 variable "processing_lambda_name" {
-  type = string
+  type    = string
   default = "gb-ttotes-processing-lambda"
 }

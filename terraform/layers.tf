@@ -24,14 +24,14 @@ data "archive_file" "layer_code" {
 
 
 resource "aws_lambda_layer_version" "dependencies" {
-  layer_name = "dependencies-layer"
-  s3_bucket  = aws_s3_object.lambda_layer.bucket
-  s3_key     = aws_s3_object.lambda_layer.key
+  layer_name       = "dependencies-layer"
+  s3_bucket        = aws_s3_object.lambda_layer.bucket
+  s3_key           = aws_s3_object.lambda_layer.key
   source_code_hash = data.archive_file.layer_code.output_base64sha256
 }
 
-# resource "aws_lambda_layer_version" "processing_dependencies" {
-#   layer_name = "processing-dependencies-layer"
-#   s3_bucket  = aws_s3_object.processing_lambda_layer.bucket
-#   s3_key     = aws_s3_object.processing_lambda_layer.key
-# }
+resource "aws_lambda_layer_version" "processing_dependencies" {
+  layer_name = "processing-dependencies-layer"
+  s3_bucket  = aws_s3_object.processing_lambda_layer.bucket
+  s3_key     = aws_s3_object.processing_lambda_layer.key
+}
