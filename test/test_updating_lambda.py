@@ -1,4 +1,5 @@
 from src.updating_lambda import*
+import pg8000
 from moto import mock_aws
 import pytest, boto3, os
 from src.utils.df_to_parquet_in_s3 import df_to_parquet_in_s3
@@ -9,13 +10,13 @@ def connect_to_db():
     credentials = retrieve_secret(sm_client, "gb-ttotes/test-db-credentials")
 
 
-    return Connection(
+    return pg8000.connect(
         user=credentials["TEST_USER"],
         password=credentials["TEST_PASSWORD"],
         database=credentials["TEST_DB"],
         host=credentials["TEST_HOST"],
         port=credentials["TEST_PORT"],
-    )
+        )
 
 @mock_aws
 def test_util_read_parquet_from_s3():
