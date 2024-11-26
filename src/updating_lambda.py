@@ -41,16 +41,23 @@ def read_parquet_from_s3(s3_client,BUCKET_NAME,file_key):
     return df
 
 # INSERT INTO DW
-def insert_into_dw(df,db):
-    insert_statement = """
-        INSERT INTO dim_currency (currency_id, currency_code, currency_name)
-        VALUES (1, 'two', 3);
+def insert_into_dw(df,db,table_name):
+    column_names = ", ".join(df.columns)
+    placehoders = ", ".join(["%s"] * len(df.columns))
+    print(column_names)
+    cursor = db.cursor() 
+    insert_statement = f"""
+        INSERT INTO {table_name} ({column_names})
+        VALUES ({placehoders});
         """
-    # for row in df.itertuples(index=False, name=None):
-    #     db.run(insert_statement, row)
-    db.run(insert_statement)
-        
-    close_connection(db)
+    print(insert_statement)
+    for index, row in df.iterrows():
+        print(row)
+        cursor.execute(insert_statement, row)
+    
+    db.commit()
+    cursor.close()
+    
    
 # LAMBDA HANDLER
 def updating_lambda_handler(event, context):
@@ -62,18 +69,11 @@ def updating_lambda_handler(event, context):
     db = connect_to_db()
 
     has_new_rows = event["HasNewRows"]
-    if has_new_rows["dim_currency"]:
-        response = s3_client.get_object(
-            Bucket=BUCKET_NAME, Key=f"dim_currency/{last_checked_time}.parquet"
-        )
-        buffer = io.BytesIO(response["Body"].read())
-        df = pd.read_parquet(buffer)
-        
-        insert_statement = """
-        INSERT INTO dim_currency (currency_id, currency_code, currency_name)
-        VALUES (%s, %s, %s)
-        """
-        for row in df.itertuples(index=False, name=None):
-            db.run(insert_statement, row)
-
+    
+    for table_name in has_new_rows:
+        if has_new_rows[table_name]:
+            file_key=f"{table_name}/{last_checked_time}.parquet"
+            df = read_parquet_from_s3(s3_client,BUCKET_NAME,file_key)
+            insert_into_dw(df,db,table_name)
+    
     close_connection(db)    
