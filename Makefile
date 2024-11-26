@@ -59,8 +59,27 @@ bandit:
 safety:
 	$(call execute_in_env, $(PIP) install safety)
 
+## Install boto3
+boto3:
+	$(call execute_in_env, $(PIP) install boto3)
+
+## Install moto
+moto:
+	$(call execute_in_env, $(PIP) install moto)
+
+## Install pytest
+pytest:
+	$(call execute_in_env, $(PIP) install pytest)
+	$(call execute_in_env, $(PIP) install pytest-cov)
+
+## Install local dependencies -- supplied separately to AWS
+local-dependencies:
+	$(call execute_in_env, $(PIP) install pandas)
+	$(call execute_in_env, $(PIP) install pyarrow)
+	$(call execute_in_env, $(PIP) install iso4217)
+
 ## Set up dev requirements (bandit, safety, black)
-dev-setup: black coverage bandit safety
+dev-setup: black coverage bandit safety moto pytest local-dependencies
 
 # Build / Run
 

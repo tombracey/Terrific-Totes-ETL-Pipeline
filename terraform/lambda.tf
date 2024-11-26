@@ -26,20 +26,22 @@ resource "aws_lambda_function" "ingestion_lambda" {
 
 resource "aws_lambda_function" "processing_lambda" {
 
-  function_name    = var.processing_lambda_name
-  role             = aws_iam_role.processing_lambda_role.arn
-  s3_bucket        = aws_s3_bucket.code_bucket.id
-  s3_key           = aws_s3_object.processing_lambda_code.key
-  handler          = "${var.processing_lambda_filename}.processing_lambda_handler"
-  runtime          = var.python_runtime
-  timeout          = 180
-  memory_size      = 512
-  source_code_hash = filebase64sha256("${path.module}/../src/${var.processing_lambda_filename}.py")
+  function_name = var.processing_lambda_name
+  role          = aws_iam_role.processing_lambda_role.arn
+  s3_bucket     = aws_s3_bucket.code_bucket.id
+  s3_key        = aws_s3_object.processing_lambda_code.key
+  handler       = "${var.processing_lambda_filename}.processing_lambda_handler"
+  runtime       = var.python_runtime
+  timeout       = 180
+  memory_size   = 512
+  # source_code_hash = filebase64sha256("${path.module}/../src/${var.processing_lambda_filename}.py")
+  source_code_hash = data.archive_file.processing_lambda_zip.output_base64sha256
   publish          = true
-  layers           = [
+  layers = [
     # "arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python312:14",
+    "arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python39:26",
     # "arn:aws:lambda:eu-west-2:575108949108:layer:pandas_pytz_numpy:2",
-    aws_lambda_layer_version.dependencies.arn
+    aws_lambda_layer_version.processing_dependencies.arn
   ]
 
   depends_on = [
@@ -49,7 +51,7 @@ resource "aws_lambda_function" "processing_lambda" {
 
   environment {
     variables = {
-      INGESTION_BUCKET_NAME = aws_s3_bucket.ingestion_bucket.id,
+      INGESTION_BUCKET_NAME  = aws_s3_bucket.ingestion_bucket.id,
       PROCESSING_BUCKET_NAME = aws_s3_bucket.processing_bucket.id
     }
   }
