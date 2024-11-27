@@ -55,12 +55,12 @@ variable "processing_metric_namespace" {
 
 variable "metric_transformation_name_3" {
   type    = string
-  default = "PublishValue2"
+  default = "PublishValue3"
 }
 
 variable "uploading_metric_namespace" {
   type    = string
-  default = "lambda-processing-function"
+  default = "lambda-uploading-function"
 }
 
 variable "ingestion_lambda_filename" {

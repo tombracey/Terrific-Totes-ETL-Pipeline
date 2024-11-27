@@ -62,7 +62,7 @@ resource "aws_lambda_function" "uploading_lambda" {
   memory_size      = 512
   source_code_hash = filebase64sha256("${path.module}/../src/${var.uploading_lambda_filename}.py")
   publish          = true
-  layers           = [aws_lambda_layer_version.dependencies.arn]
+  layers           = [aws_lambda_layer_version.dependencies.arn, "arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python39:26"]
 
   depends_on = [
     aws_s3_object.uploading_lambda_code,
