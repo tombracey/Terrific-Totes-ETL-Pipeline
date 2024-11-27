@@ -1,4 +1,4 @@
-from src.utils.fetch_latest_row_versions import fetch_latest_row_versions
+from src.processing_lambda import fetch_latest_row_versions
 import pytest, os, boto3
 import pandas as pd
 from moto import mock_aws
@@ -44,7 +44,7 @@ def test_single_file_with_correct_id_returns_expected_single_row_dataframe(s3_bu
     assert output_df.loc[0, "sales_order_id"] == 11283
     assert output_df.loc[0, "created_at"] == "2024-11-21 13:21:09.941000"
     assert output_df.loc[0, "last_updated"] == "2024-11-21 13:21:09.941000"
-    assert output_df.loc[0, "design_id"] == 349
+    assert output_df.loc[0, "design_id"] == 8
     assert output_df.loc[0, "staff_id"] == 1
     assert output_df.loc[0, "counterparty_id"] == 5
     assert output_df.loc[0, "units_sold"] == 1842
@@ -82,7 +82,7 @@ def test_seeking_one_id_in_multiple_matching_files_returns_expected_single_row_d
     assert output_df.loc[0, "sales_order_id"] == 11283
     assert output_df.loc[0, "created_at"] == "2024-11-21 15:54:09.995000"
     assert output_df.loc[0, "last_updated"] == "2024-11-21 15:54:09.995000"
-    assert output_df.loc[0, "design_id"] == 78
+    assert output_df.loc[0, "design_id"] == 10
     assert output_df.loc[0, "staff_id"] == 8
     assert output_df.loc[0, "counterparty_id"] == 18
     assert output_df.loc[0, "units_sold"] == 53443

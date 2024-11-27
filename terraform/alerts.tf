@@ -1,25 +1,83 @@
+# INGESTION LAMBDA - METRIC FILTER AND ALARM
+
 resource "aws_cloudwatch_log_metric_filter" "lambda_ingestion_error_filter" {
-  name = "lambda-ingestion-error-filter"     ## gives a name to the filter
-  pattern = var.error_tag       ## pattern we want to search for (should be a var also used by lambda error logging)
-  log_group_name = aws_cloudwatch_log_group.ingestion_lambda_log_group.name  ## name of log group to watch (possible var?)
+  name = "lambda-ingestion-error-filter"
+  pattern = var.error_tag
+  log_group_name = aws_cloudwatch_log_group.ingestion_lambda_log_group.name
   
   metric_transformation {
-      name = var.metric_transformation_name  ## gives a name to the metric (possible var?)
-      namespace = var.ingestion_metric_namespace  ## name of the metric namespace (possible var?)
-      value = "1" ## the value published to the metric each time the pattern is found  
+      name = var.metric_transformation_name
+      namespace = var.ingestion_metric_namespace
+      value = "1"
   }
 }
 
 resource "aws_cloudwatch_metric_alarm" "lambda_ingestion_error_alarm" {
-    alarm_name = "lambda-ingestion-error-alarm"    ## gives a name to the alarm
-    evaluation_periods = 1      ## number of periods to include in the comparison
+    alarm_name = "lambda-ingestion-error-alarm"
+    evaluation_periods = 1
     period = 60
     comparison_operator = "GreaterThanOrEqualToThreshold"
     statistic = "Sum"
-    threshold = 1       ## alarm should be triggered by presence of 1 or more errors
+    threshold = 1
     metric_name = aws_cloudwatch_log_metric_filter.lambda_ingestion_error_filter.name
     namespace = var.ingestion_metric_namespace
     alarm_description = "This metric monitors the lambda ingestion function log for error messages"
-    alarm_actions = []  ## this list must contain the arn of the sns topic once created
+    alarm_actions = [aws_sns_topic.error_email_topic.arn]
+    insufficient_data_actions = []
+}
+
+# PROCESSING LAMBDA - METRIC FILTER AND ALARM
+
+resource "aws_cloudwatch_log_metric_filter" "lambda_processing_error_filter" {
+  name = "lambda-processing-error-filter"
+  pattern = var.error_tag
+  log_group_name = aws_cloudwatch_log_group.processing_lambda_log_group.name
+  
+  metric_transformation {
+      name = var.metric_transformation_name_2
+      namespace = var.processing_metric_namespace
+      value = "1" 
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "lambda_processing_error_alarm" {
+    alarm_name = "lambda-processing-error-alarm"
+    evaluation_periods = 1
+    period = 60
+    comparison_operator = "GreaterThanOrEqualToThreshold"
+    statistic = "Sum"
+    threshold = 1
+    metric_name = aws_cloudwatch_log_metric_filter.lambda_processing_error_filter.name
+    namespace = var.processing_metric_namespace
+    alarm_description = "This metric monitors the processing lambda function log for error messages"
+    alarm_actions = [aws_sns_topic.error_email_topic.arn]
+    insufficient_data_actions = []
+}
+
+# UPLOADING LAMBDA - METRIC FILTER AND ALARM
+
+resource "aws_cloudwatch_log_metric_filter" "lambda_uploading_error_filter" {
+  name = "lambda-uploading-error-filter"
+  pattern = var.error_tag
+  log_group_name = aws_cloudwatch_log_group.uploading_lambda_log_group.name
+  
+  metric_transformation {
+      name = var.metric_transformation_name_3
+      namespace = var.uploading_metric_namespace
+      value = "1" 
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "lambda_uploading_error_alarm" {
+    alarm_name = "lambda-uploading-error-alarm"
+    evaluation_periods = 1
+    period = 60
+    comparison_operator = "GreaterThanOrEqualToThreshold"
+    statistic = "Sum"
+    threshold = 1
+    metric_name = aws_cloudwatch_log_metric_filter.lambda_uploading_error_filter.name
+    namespace = var.uploading_metric_namespace
+    alarm_description = "This metric monitors the uploading lambda function log for error messages"
+    alarm_actions = [aws_sns_topic.error_email_topic.arn]
     insufficient_data_actions = []
 }
