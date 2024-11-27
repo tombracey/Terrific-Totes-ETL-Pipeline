@@ -43,15 +43,30 @@ def read_parquet_from_s3(s3_client,BUCKET_NAME,file_key):
 # INSERT INTO DW
 def insert_into_dw(df,db,table_name):
     column_names = ", ".join(df.columns)
-    placehoders = ", ".join(["%s"] * len(df.columns))
+    placeholders = ", ".join(["%s"] * len(df.columns))
     cursor = db.cursor() 
-    insert_statement = f"""
-        INSERT INTO {table_name} ({column_names})
-        VALUES ({placehoders});
-        """
-    for index, row in df.iterrows():
-        cursor.execute(insert_statement, row)
-    
+    if table_name == "fact_sales_order":
+        logger.info(f"adding new row(s) to {table_name}")
+        insert_statement = f"""
+            INSERT INTO {table_name} ({column_names})
+            VALUES ({placeholders});
+            """
+        for index, row in df.iterrows():
+            cursor.execute(insert_statement, row)
+        logger.info(f"new rows added to {table_name}")    
+    else:
+        logger.info(f"updating / adding row(s) to {table_name}")
+        column_id_name = table_name[4:] + "_id"
+        update_statement = ", ".join([f"{col} = EXCLUDED.{col}" for col in df.columns])
+        insert_statement = f"""
+            INSERT INTO {table_name} ({column_names})
+            VALUES ({placeholders})
+            ON CONFLICT ({column_id_name})
+            DO UPDATE SET {update_statement};
+            """
+        for index, row in df.iterrows():
+            cursor.execute(insert_statement, row)
+        logger.info(f"rows updated / added to {table_name}")     
     db.commit()
     cursor.close()
     
@@ -73,9 +88,7 @@ def updating_lambda_handler(event, context):
             if has_new_rows[table_name]:
                 file_key=f"{table_name}/{last_checked_time}.parquet"
                 df = read_parquet_from_s3(s3_client,BUCKET_NAME,file_key)
-                logger.info(f"adding new row(s) to {table_name}")
                 insert_into_dw(df,db,table_name)
-                logger.info(f"new rows added to {table_name}")
             else:
                 logger.info(f"no new rows to add to {table_name}")
         

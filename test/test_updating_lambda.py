@@ -1,21 +1,22 @@
 from src.updating_lambda import*
-import pg8000
+import pg8000.native
 from moto import mock_aws
 import boto3
 from src.utils.df_to_parquet_in_s3 import df_to_parquet_in_s3
-
+import ssl
 
 def connect_to_db():
     sm_client = boto3.client("secretsmanager", "eu-west-2")
     credentials = retrieve_secret(sm_client, "gb-ttotes/test-db-credentials")
-
-
+    ssl_context = ssl.SSLContext()
+    
     return pg8000.connect(
         user=credentials["TEST_USER"],
         password=credentials["TEST_PASSWORD"],
         database=credentials["TEST_DB"],
         host=credentials["TEST_HOST"],
         port=credentials["TEST_PORT"],
+        ssl_context=ssl_context 
         )
 
 @mock_aws
@@ -39,7 +40,7 @@ def test_util_insert_row_into_data_warehouse():
     test_df = pd.DataFrame(test_dict)
     db = connect_to_db()
     db.run("DROP TABLE IF EXISTS dim_currency;")
-    db.run("CREATE TABLE IF NOT EXISTS dim_currency (currency_id INT, currency_code VARCHAR, currency_name VARCHAR);")
+    db.run("CREATE TABLE IF NOT EXISTS dim_currency (currency_id INT PRIMARY KEY, currency_code VARCHAR, currency_name VARCHAR);")
     insert_into_dw(test_df,db,"dim_currency")
     assert db.run("SELECT * FROM dim_currency;") == ([1, 'GBP', 'British pound sterling'],)
     db.close()
@@ -50,14 +51,27 @@ def test_util_insert_multiple_rows_into_data_warehouse():
     test_df = pd.DataFrame(test_dict)
     db = connect_to_db()
     db.run("DROP TABLE IF EXISTS dim_currency;")
-    db.run("CREATE TABLE IF NOT EXISTS dim_currency (currency_id INT, currency_code VARCHAR, currency_name VARCHAR);")
+    db.run("CREATE TABLE IF NOT EXISTS dim_currency (currency_id INT PRIMARY KEY, currency_code VARCHAR, currency_name VARCHAR);")
     insert_into_dw(test_df,db,"dim_currency")
     assert db.run("SELECT * FROM dim_currency;") == ([1, 'GBP', 'British pound sterling'],[2, "USD", "US dollar"])
     db.close()
 
+def test_util_updates_row_in_dim_table_if_exists():
+    
+    test_dict = {"currency_id": [1], "currency_code": ["GBP"], "currency_name": ["British pound sterling"]}
+    test_df = pd.DataFrame(test_dict)
+    db = connect_to_db()
+    db.run("DROP TABLE IF EXISTS dim_currency;")
+    db.run("CREATE TABLE IF NOT EXISTS dim_currency (currency_id INT PRIMARY KEY, currency_code VARCHAR, currency_name VARCHAR);")
+    insert_into_dw(test_df,db,"dim_currency")
+    assert db.run("SELECT * FROM dim_currency;") == ([1, 'GBP', 'British pound sterling'],)
+    test_dict2 = {"currency_id": [1], "currency_code": ["USD"], "currency_name": ["US Dollar"]}
+    test_df2 = pd.DataFrame(test_dict2)
+    insert_into_dw(test_df2,db,"dim_currency")
+    assert db.run("SELECT * FROM dim_currency;") == ([1, 'USD', 'US Dollar'],)
+    db.close()
 
-
-"""test below was updating the actual datawarehouse, will fail if re-run as files with last checked time "2024-11-20 15:22:10.531518" already added now"""
+"""test below was updating the actual datawarehouse, DO NOT re-run otherwise will duplicate rows in fact_sales_order table"""
 # def test_updating_lambda_insert():
 
 #     test_event = {
