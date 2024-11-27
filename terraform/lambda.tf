@@ -55,4 +55,29 @@ resource "aws_lambda_function" "processing_lambda" {
   }
 }
 
+resource "aws_lambda_function" "uploading_lambda" {
+
+  function_name    = var.uploading_lambda_name
+  role             = aws_iam_role.uploading_lambda_role.arn
+  s3_bucket        = aws_s3_bucket.code_bucket.id
+  s3_key           = aws_s3_object.uploading_lambda_code.key
+  handler          = "${var.uploading_lambda_filename}.uploading_lambda_handler"
+  runtime          = var.python_runtime
+  timeout          = 180
+  memory_size      = 512
+  source_code_hash = filebase64sha256("${path.module}/../src/${var.uploading_lambda_filename}.py")
+  publish          = true
+  layers           = [aws_lambda_layer_version.dependencies.arn, "arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python39:26"]
+
+  depends_on = [
+    aws_s3_object.uploading_lambda_code,
+    aws_s3_object.lambda_layer
+  ]
+
+  environment {
+    variables = {
+      PROCESSING_BUCKET_NAME = aws_s3_bucket.processing_bucket.id
+    }
+  }
+}
 
