@@ -57,6 +57,12 @@ resource "aws_iam_role_policy_attachment" "lambda_secrets_manager_read_write_pol
   policy_arn = aws_iam_policy.secrets_manager_read_write_policy.arn
 }
 
+resource "aws_iam_role_policy_attachment" "uploading_lambda_secrets_manager_read_write_policy_attachment" {
+  role       = aws_iam_role.uploading_lambda_role.name
+  policy_arn = aws_iam_policy.secrets_manager_read_write_policy.arn
+}
+
+
 # INGESTION LAMBDA s3 WRITE PERMISSIONS AND ATTACHMENT
 
 data "aws_iam_policy_document" "ingestion_s3_data_policy_doc" {

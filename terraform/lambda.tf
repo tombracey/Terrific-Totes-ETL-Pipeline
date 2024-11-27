@@ -46,7 +46,7 @@ resource "aws_lambda_function" "processing_lambda" {
 
   depends_on = [
     aws_s3_object.processing_lambda_code,
-    aws_s3_object.lambda_layer
+    aws_s3_object.processing_lambda_layer
   ]
 
   environment {
